@@ -1,0 +1,82 @@
+<!-- Updated HTML with an Edit button -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Information Form</title>
+</head>
+<body>
+
+  <h1>User Information Form</h1>
+
+  <form id="userForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="phone">Phone:</label>
+    <input type="tel" id="phone" name="phone" required>
+
+    <button type="button" onclick="submitUserInfo()">Submit</button>
+  </form>
+
+  <div id="userInfo"></div>
+
+  <script>
+    window.onload = function () {
+      displayUsers();
+    };
+
+    function submitUserInfo() {
+      // ... (unchanged code for submitting user info)
+      displayUsers();
+    }
+
+    function displayUsers() {
+      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+      const userInfoDiv = document.getElementById('userInfo');
+      userInfoDiv.innerHTML = '<h2>User Information:</h2>';
+
+      storedUsers.forEach((user, index) => {
+        userInfoDiv.innerHTML += `
+          <div>
+            <p><strong>Name:</strong> ${user.name}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Phone:</strong> ${user.phone}</p>
+            <button onclick="editUser(${index})">Edit</button>
+            <button onclick="deleteUser(${index})">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    function editUser(index) {
+      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+      const userToEdit = storedUsers[index];
+
+      // Populate the form with the user's information for editing
+      document.getElementById('name').value = userToEdit.name;
+      document.getElementById('email').value = userToEdit.email;
+      document.getElementById('phone').value = userToEdit.phone;
+
+      // Remove the user from the list (since we'll be editing it)
+      storedUsers.splice(index, 1);
+      localStorage.setItem('users', JSON.stringify(storedUsers));
+
+      // Refresh the displayed users on the UI
+      displayUsers();
+    }
+
+    function deleteUser(index) {
+      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+      storedUsers.splice(index, 1);
+      localStorage.setItem('users', JSON.stringify(storedUsers));
+      displayUsers();
+    }
+  </script>
+
+</body>
+</html>
