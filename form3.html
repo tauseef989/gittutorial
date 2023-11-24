@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Information Form</title>
+</head>
+<body>
+
+  <h1>User Information Form</h1>
+
+  <form id="userForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="phone">Phone:</label>
+    <input type="tel" id="phone" name="phone" required>
+
+    <button type="button" onclick="submitUserInfo()">Submit</button>
+  </form>
+
+  <div id="userInfo"></div>
+
+  <script>
+    // Load existing users from Local Storage on page load
+    window.onload = function () {
+      displayUsers();
+    };
+
+    function submitUserInfo() {
+      // ... (unchanged code for submitting user info)
+
+      // Display all users on the UI
+      displayUsers();
+    }
+
+    function displayUsers() {
+      // Retrieve existing users from Local Storage
+      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+
+      // Display user information on the webpage
+      const userInfoDiv = document.getElementById('userInfo');
+      userInfoDiv.innerHTML = '<h2>User Information:</h2>';
+
+      // Display each user with a delete button
+      storedUsers.forEach((user, index) => {
+        userInfoDiv.innerHTML += `
+          <div>
+            <p><strong>Name:</strong> ${user.name}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Phone:</strong> ${user.phone}</p>
+            <button onclick="deleteUser(${index})">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    function deleteUser(index) {
+      // Retrieve existing users from Local Storage
+      const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+
+      // Remove the user at the specified index
+      storedUsers.splice(index, 1);
+
+      // Update Local Storage with the modified user list
+      localStorage.setItem('users', JSON.stringify(storedUsers));
+
+      // Refresh the displayed users on the UI
+      displayUsers();
+    }
+  </script>
+
+</body>
+</html>
