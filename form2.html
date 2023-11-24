@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Information Form</title>
+</head>
+<body>
+
+  <h1>User Information Form</h1>
+
+  <form id="userForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="phone">Phone:</label>
+    <input type="tel" id="phone" name="phone" required>
+
+    <button type="button" onclick="displayUserInfo()">Submit</button>
+  </form>
+
+  <div id="userInfo"></div>
+
+  <script>
+    function displayUserInfo() {
+      // Get user details from the form
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+
+      // Display user information on the webpage
+      const userInfoDiv = document.getElementById('userInfo');
+      userInfoDiv.innerHTML = `
+        <h2>User Information:</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+      `;
+
+      // Optionally, you can clear the form after displaying the information
+      document.getElementById('userForm').reset();
+    }
+  </script>
+
+</body>
+</html>
