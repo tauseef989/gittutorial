@@ -1,0 +1,241 @@
+User
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker</title>
+  <style>
+    /* Add some basic styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 8px;
+    }
+
+    input, select {
+      margin-bottom: 16px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Expense Tracker</h2>
+    <form id="expenseForm">
+      <label for="amount">Expense Amount:</label>
+      <input type="number" id="amount" name="amount" required>
+
+      <label for="description">Description:</label>
+      <input type="text" id="description" name="description" required>
+
+      <label for="category">Category:</label>
+      <select id="category" name="category" required>
+        <option value="groceries">Groceries</option>
+        <option value="utilities">Utilities</option>
+        <option value="entertainment">Entertainment</option>
+        <!-- Add more categories as needed -->
+      </select>
+
+      <button type="button" onclick="addExpense()">Add Expense</button>
+    </form>
+
+    <h3>Expense List</h3>
+    <ul id="expenseList"></ul>
+  </div>
+
+  <script>
+    // Function to add expense
+    function addExpense() {
+      const amount = document.getElementById('amount').value;
+      const description = document.getElementById('description').value;
+      const category = document.getElementById('category').value;
+
+      if (amount && description && category) {
+        // Create an expense object
+        const expense = {
+          amount: parseFloat(amount),
+          description,
+          category
+        };
+
+        // Retrieve existing expenses from local storage
+        const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+        // Add the new expense to the list
+        expenses.push(expense);
+
+        // Save the updated expenses to local storage
+        localStorage.setItem('expenses', JSON.stringify(expenses));
+
+        // Display the updated expense list
+        displayExpenses();
+
+        // Clear the form
+        document.getElementById('expenseForm').reset();
+      } else {
+        alert('Please fill in all fields.');
+      }
+    }
+
+    // Function to display expenses on the webpage
+    function displayExpenses() {
+      const expenseList = document.getElementById('expenseList');
+      expenseList.innerHTML = '';
+
+      // Retrieve expenses from local storage
+      const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+      // Display each expense in the list
+      expenses.forEach(expense => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `Amount: $${expense.amount.toFixed(2)} | Description: ${expense.description} | Category: ${expense.category}`;
+        expenseList.appendChild(listItem);
+      });
+    }
+
+    // Display existing expenses on page load
+    displayExpenses();
+  </script>
+<!-- ... (previous code) ... -->
+
+<h3>Expense List</h3>
+<ul id="expenseList"></ul>
+
+<script>
+  // Function to add expense
+  function addExpense() {
+    const amount = document.getElementById('amount').value;
+    const description = document.getElementById('description').value;
+    const category = document.getElementById('category').value;
+
+    if (amount && description && category) {
+      // Create an expense object
+      const expense = {
+        amount: parseFloat(amount),
+        description,
+        category
+      };
+
+      // Retrieve existing expenses from local storage
+      const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+      // Add the new expense to the list
+      expenses.push(expense);
+
+      // Save the updated expenses to local storage
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+
+      // Display the updated expense list
+      displayExpenses();
+
+      // Clear the form
+      document.getElementById('expenseForm').reset();
+    } else {
+      alert('Please fill in all fields.');
+    }
+  }
+
+  // Function to display expenses on the webpage
+  function displayExpenses() {
+    const expenseList = document.getElementById('expenseList');
+    expenseList.innerHTML = '';
+
+    // Retrieve expenses from local storage
+    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+    // Display each expense in the list
+    expenses.forEach((expense, index) => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `Amount: $${expense.amount.toFixed(2)} | Description: ${expense.description} | Category: ${expense.category}`;
+
+      // Add delete button
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'Delete';
+      deleteButton.onclick = () => deleteExpense(index);
+      listItem.appendChild(deleteButton);
+
+      // Add edit button
+      const editButton = document.createElement('button');
+      editButton.textContent = 'Edit';
+      editButton.onclick = () => editExpense(index);
+      listItem.appendChild(editButton);
+
+      expenseList.appendChild(listItem);
+    });
+  }
+
+  // Function to delete an expense
+  function deleteExpense(index) {
+    // Retrieve existing expenses from local storage
+    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+    // Remove the expense at the specified index
+    expenses.splice(index, 1);
+
+    // Update local storage with the modified expense list
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+
+    // Refresh the displayed expenses on the UI
+    displayExpenses();
+  }
+
+  // Function to edit an expense
+  function editExpense(index) {
+    // Retrieve existing expenses from local storage
+    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+    // Get the expense at the specified index
+    const existingExpense = expenses[index];
+
+    // Set the form values to the existing expense values
+    document.getElementById('amount').value = existingExpense.amount;
+    document.getElementById('description').value = existingExpense.description;
+    document.getElementById('category').value = existingExpense.category;
+
+    // Delete the existing expense from the list
+    expenses.splice(index, 1);
+
+    // Update local storage with the modified expense list
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+
+    // Refresh the displayed expenses on the UI
+    displayExpenses();
+  }
+
+  // Display existing expenses on page load
+  displayExpenses();
+</script>
+
+</body>
+</html>
