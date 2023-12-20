@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simple Form</title>
   <style>
-    .delete-icon {
+    .delete-btn, .edit-btn {
       cursor: pointer;
+      margin-left: 10px;
     }
   </style>
 </head>
@@ -28,11 +29,13 @@
   </form>
 
   <div id="displayInfo"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
 
   <script>
+    // Function to handle form submission
     function submitForm(event) {
-      event.preventDefault();
+      event.preventDefault(); // Prevents the default form submission
+
       const name = document.getElementById('name').value;
       const email = document.getElementById('email').value;
       const phone = document.getElementById('phone').value;
@@ -46,59 +49,108 @@
       axios.post("https://crudcrud.com/api/deac1fa23cb4472fa76f3b773cae0b51/abc", user)
         .then((response) => {
           console.log(response);
-          alert('User information submitted successfully!');
+          alert('User information saved successfully!');
           document.getElementById('myForm').reset();
           displayUserInfo();
         })
         .catch((err) => {
           console.error(err);
-          alert('Error submitting user information. Please try again.');
+          alert('Error saving user information. Please try again.');
         });
     }
 
+    // Function to display user information on the webpage
     function displayUserInfo() {
       axios.get("https://crudcrud.com/api/deac1fa23cb4472fa76f3b773cae0b51/abc")
         .then((response) => {
           console.log(response);
 
           const displayInfoElement = document.getElementById('displayInfo');
-          if (response.data.length > 0) {
-            displayInfoElement.innerHTML = '<h3>Stored Information:</h3>';
-            for (var i = 0; i < response.data.length; i++) {
-              const user = response.data[i];
-              const deleteIcon = `<span class="delete-icon" onclick="deleteUser('${user._id}')">🗑️</span>`;
-              displayInfoElement.innerHTML += `
-                <p><strong>Name:</strong> ${user.name} ${deleteIcon}</p>
-                <p><strong>Email:</strong> ${user.email}</p>
-                <p><strong>Phone:</strong> ${user.phone}</p>
-                <hr>
-              `;
-            }
-          } else {
-            displayInfoElement.innerHTML = '<p>No information stored.</p>';
+          displayInfoElement.innerHTML = '<h3>Stored Information:</h3>';
+
+          for (var i = 0; i < response.data.length; i++) {
+            const user = response.data[i];
+            const userId = user._id;
+
+            displayInfoElement.innerHTML += `
+              <p><strong>Name:</strong> ${user.name}</p>
+              <p><strong>Email:</strong> ${user.email}</p>
+              <p><strong>Phone:</strong> ${user.phone}</p>
+              <button class="delete-btn" onclick="deleteUser('${userId}')">Delete</button>
+              <button class="edit-btn" onclick="editUser('${userId}')">Edit</button>
+              <hr>
+            `;
           }
         })
         .catch((err) => {
           console.error(err);
-          alert('Error retrieving user information. Please try again.');
         });
     }
 
+    // Function to delete user
     function deleteUser(userId) {
       axios.delete(`https://crudcrud.com/api/deac1fa23cb4472fa76f3b773cae0b51/abc/${userId}`)
         .then(() => {
-          console.log(`User with ID ${userId} deleted successfully.`);
-          displayUserInfo(); // Refresh the displayed information after deletion
+          console.log('User deleted successfully!');
+          alert('User deleted successfully!');
+          displayUserInfo();
         })
         .catch((err) => {
           console.error(err);
-          alert('Error deleting user information. Please try again.');
+          alert('Error deleting user. Please try again.');
+        });
+    }
+
+    // Function to edit user
+    function editUser(userId) {
+      axios.get(`https://crudcrud.com/api/deac1fa23cb4472fa76f3b773cae0b51/abc/${userId}`)
+        .then((response) => {
+          const user = response.data;
+          document.getElementById('name').value = user.name;
+          document.getElementById('email').value = user.email;
+          document.getElementById('phone').value = user.phone;
+          // Set up a submit event listener for the edit form
+          document.getElementById('myForm').removeEventListener('submit', submitForm);
+          document.getElementById('myForm').addEventListener('submit', (event) => submitEditedForm(event, userId));
+        })
+        .catch((err) => {
+          console.error(err);
+          alert('Error retrieving user information for editing. Please try again.');
+        });
+    }
+
+    // Function to submit edited form
+    function submitEditedForm(event, userId) {
+      event.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+
+      const user = {
+        name: name,
+        email: email,
+        phone: phone
+      };
+
+      axios.put(`https://crudcrud.com/api/deac1fa23cb4472fa76f3b773cae0b51/abc/${userId}`, user)
+        .then((response) => {
+          console.log(response);
+          alert('User information updated successfully!');
+          document.getElementById('myForm').reset();
+          displayUserInfo();
+          // Set up the original submit event listener
+          document.getElementById('myForm').removeEventListener('submit', submitEditedForm);
+          document.getElementById('myForm').addEventListener('submit', submitForm);
+        })
+        .catch((err) => {
+          console.error(err);
+          alert('Error updating user information. Please try again.');
         });
     }
 
     document.getElementById('myForm').addEventListener('submit', submitForm);
     window.addEventListener('load', displayUserInfo);
   </script>
-
 </body>
 </html>
