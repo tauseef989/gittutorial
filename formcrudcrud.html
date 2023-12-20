@@ -25,7 +25,6 @@
   <div id="displayInfo"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
 
-
   <script>
     // Function to handle form submission
     function submitForm(event) {
@@ -43,13 +42,10 @@
         phone: phone
       };
 
-      // Use Axios to make a POST request
-      axios.post("https://crudcrud.com/api/deac1fa23cb4472fa76f3b773cae0b51", user)
+      // Use Axios to make a POST request to save user data
+      axios.post("https://crudcrud.com/api/deac1fa23cb4472fa76f3b773cae0b51/abc", user)
         .then((response) => {
           console.log(response);
-
-          // Uncomment the line below to store the user object in local storage
-          //localStorage.setItem('user', JSON.stringify(user));
 
           // Display the saved information on the webpage
           displayUserInfo();
@@ -61,22 +57,31 @@
 
     // Function to display user information on the webpage
     function displayUserInfo() {
-      // Retrieve user information from local storage
-      const storedUser = localStorage.getItem('user');
+      // Use Axios to make a GET request to retrieve user data
+      axios.get("https://crudcrud.com/api/deac1fa23cb4472fa76f3b773cae0b51/abc")
+        .then((response) => {
+          console.log(response);
 
-      // Display the information on the webpage
-      const displayInfoElement = document.getElementById('displayInfo');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        displayInfoElement.innerHTML = `
-          <h3>Stored Information:</h3>
-          <p><strong>Name:</strong> ${user.name}</p>
-          <p><strong>Email:</strong> ${user.email}</p>
-          <p><strong>Phone:</strong> ${user.phone}</p>
-        `;
-      } else {
-        displayInfoElement.innerHTML = '<p>No information stored.</p>';
-      }
+          // Display the information on the webpage
+          const displayInfoElement = document.getElementById('displayInfo');
+          if (response.data.length > 0) {
+            displayInfoElement.innerHTML = '<h3>Stored Information:</h3>';
+            for (var i = 0; i < response.data.length; i++) {
+              const user = response.data[i];
+              displayInfoElement.innerHTML += `
+                <p><strong>Name:</strong> ${user.name}</p>
+                <p><strong>Email:</strong> ${user.email}</p>
+                <p><strong>Phone:</strong> ${user.phone}</p>
+                <hr>
+              `;
+            }
+          } else {
+            displayInfoElement.innerHTML = '<p>No information stored.</p>';
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
 
     // Attach the submitForm function to the form's submit event
