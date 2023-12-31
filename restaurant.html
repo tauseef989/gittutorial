@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Management</title>
+  <style>
+    .delete-btn,
+    .edit-btn {
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Order Management</h2>
+
+  <form id="order">
+    <label for="Price">Choose Price:</label>
+    <input type="text" id="Price" required><br>
+
+    <label for="Dish">Choose Dish:</label>
+    <input type="text" id="Dish" required><br>
+
+    <label for="Table">Choose a Table:</label>
+    <select id="Table" size="3">
+      <option value="Table 1">Table 1</option>
+      <option value="Table 2">Table 2</option>
+      <option value="Table 3">Table 3</option>
+    </select><br>
+
+    <button type="submit">Add to Bill</button>
+  </form>
+
+  <div id="orderInfo"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+
+  <script>
+    function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const price = document.getElementById("Price").value;
+      const dish = document.getElementById("Dish").value;
+      const table = document.getElementById("Table").value;
+
+      const orderObject = {
+        "Choose Price": price,
+        "Choose Dish": dish,
+        "Choose Table": table
+      };
+
+      axios.post("https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders", orderObject)
+        .then(() => {
+          alert("Customer order is taken");
+          displayOrders();
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Error storing order. Please try again.");
+        });
+    }
+
+    function displayOrders() {
+      axios.get("https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders")
+        .then((response) => {
+          const storedOrders = response.data || [];
+          const orderInfoDiv = document.getElementById("orderInfo");
+          orderInfoDiv.innerHTML = "<h3>Customer Orders:</h3>";
+
+          storedOrders.forEach((order, index) => {
+            orderInfoDiv.innerHTML += `
+              <div>
+                <p><strong>Price:</strong> ${order["Choose Price"]}</p>
+                <p><strong>Dish:</strong> ${order["Choose Dish"]}</p>
+                <p><strong>Table:</strong> ${order["Choose Table"]}</p>
+                <button class="edit-btn" onclick="editOrder('${order._id}')">Edit</button>
+                <button class="delete-btn" onclick="deleteOrder('${order._id}')">Delete</button>
+                <hr>
+              </div>
+            `;
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+
+    function deleteOrder(orderId) {
+      axios.delete(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders/${orderId}`)
+        .then(() => {
+          displayOrders();
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+
+    function editOrder(orderId) {
+      axios.get(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders/${orderId}`)
+        .then((response) => {
+          const orderToEdit = response.data;
+
+          document.getElementById("Price").value = orderToEdit["Choose Price"];
+          document.getElementById("Dish").value = orderToEdit["Choose Dish"];
+          document.getElementById("Table").value = orderToEdit["Choose Table"];
+
+          axios.delete(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders/${orderId}`)
+            .then(() => {
+              displayOrders();
+            })
+            .catch((err) => {
+              console.error(err);
+            });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+
+    const orderForm = document.getElementById("order");
+    orderForm.addEventListener("submit", handleFormSubmit);
+
+    window.addEventListener("load", displayOrders);
+  </script>
+
+</body>
+
+</html>

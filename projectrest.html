@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Form</title>
+  <style>
+    .delete-btn, .edit-btn {
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Order Form</h2>
+
+  <form id="orderForm">
+    <label for="price">Price:</label>
+    <input type="text" id="price" name="price" required><br>
+
+    <label for="dish">Dish:</label>
+    <input type="text" id="dish" name="dish" required><br>
+
+    <label for="tableNo">Table No:</label>
+    <input type="text" id="tableNo" name="tableNo" required><br>
+
+    <button type="submit">Submit Order</button>
+  </form>
+
+  <div id="displayOrders"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+
+  <script>
+    // Function to handle form submission
+    function submitOrder(event) {
+      event.preventDefault(); // Prevents the default form submission
+
+      const price = document.getElementById('price').value;
+      const dish = document.getElementById('dish').value;
+      const tableNo = document.getElementById('tableNo').value;
+
+      const order = {
+        price: price,
+        dish: dish,
+        tableNo: tableNo
+      };
+
+      axios.post("https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/orders", order)
+        .then((response) => {
+          console.log(response);
+          alert('Order information saved successfully!');
+          document.getElementById('orderForm').reset();
+          displayOrders();
+        })
+        .catch((err) => {
+          console.error(err);
+          alert('Error saving order information. Please try again.');
+        });
+    }
+
+    // Function to display orders on the webpage
+    function displayOrders() {
+      axios.get("https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/orders")
+        .then((response) => {
+          console.log(response);
+
+          const displayOrdersElement = document.getElementById('displayOrders');
+          displayOrdersElement.innerHTML = '<h3>Order Information:</h3>';
+
+          for (var i = 0; i < response.data.length; i++) {
+            const order = response.data[i];
+            const orderId = order._id;
+
+            displayOrdersElement.innerHTML += `
+              <p><strong>Price:</strong> ${order.price}</p>
+              <p><strong>Dish:</strong> ${order.dish}</p>
+              <p><strong>Table No:</strong> ${order.tableNo}</p>
+              <button class="delete-btn" onclick="deleteOrder('${orderId}')">Delete</button>
+              <button class="edit-btn" onclick="editOrder('${orderId}')">Edit</button>
+              <hr>
+            `;
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+
+    // Function to delete an order
+    function deleteOrder(orderId) {
+      axios.delete(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/orders/${orderId}`)
+        .then(() => {
+          console.log('Order deleted successfully!');
+          alert('Order deleted successfully!');
+          displayOrders();
+        })
+        .catch((err) => {
+          console.error(err);
+          alert('Error deleting order. Please try again.');
+        });
+    }
+
+    // Function to edit an order
+    function editOrder(orderId) {
+      axios.get(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/orders/${orderId}`)
+        .then((response) => {
+          const order = response.data;
+          document.getElementById('price').value = order.price;
+          document.getElementById('dish').value = order.dish;
+          document.getElementById('tableNo').value = order.tableNo;
+          // Set up a submit event listener for the edit form
+          document.getElementById('orderForm').removeEventListener('submit', submitOrder);
+          document.getElementById('orderForm').addEventListener('submit', (event) => submitEditedOrder(event, orderId));
+        })
+        .catch((err) => {
+          console.error(err);
+          alert('Error retrieving order information for editing. Please try again.');
+        });
+    }
+
+    // Function to submit an edited order
+    function submitEditedOrder(event, orderId) {
+      event.preventDefault();
+
+      const price = document.getElementById('price').value;
+      const dish = document.getElementById('dish').value;
+      const tableNo = document.getElementById('tableNo').value;
+
+      const order = {
+        price: price,
+        dish: dish,
+        tableNo: tableNo
+      };
+
+      axios.put(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/orders/${orderId}`, order)
+        .then((response) => {
+          console.log(response);
+          alert('Order information updated successfully!');
+          document.getElementById('orderForm').reset();
+          displayOrders();
+          // Set up the original submit event listener
+          document.getElementById('orderForm').removeEventListener('submit', submitEditedOrder);
+          document.getElementById('orderForm').addEventListener('submit', submitOrder);
+        })
+        .catch((err) => {
+          console.error(err);
+          alert('Error updating order information. Please try again.');
+        });
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', submitOrder);
+    window.addEventListener('load', displayOrders);
+  </script>
+</body>
+</html>
