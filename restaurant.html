@@ -53,7 +53,7 @@
         "Choose Table": table
       };
 
-      axios.post("https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders", orderObject)
+      axios.post("https://crudcrud.com/api/89038532812b4973a03862fe85db7252/customerOrders", orderObject)
         .then(() => {
           alert("Customer order is taken");
           displayOrders();
@@ -65,7 +65,7 @@
     }
 
     function displayOrders() {
-      axios.get("https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders")
+      axios.get("https://crudcrud.com/api/89038532812b4973a03862fe85db7252/customerOrders")
         .then((response) => {
           const storedOrders = response.data || [];
           const orderInfoDiv = document.getElementById("orderInfo");
@@ -90,7 +90,7 @@
     }
 
     function deleteOrder(orderId) {
-      axios.delete(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders/${orderId}`)
+      axios.delete(`https://crudcrud.com/api/89038532812b4973a03862fe85db7252/customerOrders/${orderId}`)
         .then(() => {
           displayOrders();
         })
@@ -100,7 +100,7 @@
     }
 
     function editOrder(orderId) {
-      axios.get(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders/${orderId}`)
+      axios.get(`https://crudcrud.com/api/89038532812b4973a03862fe85db7252/customerOrders/${orderId}`)
         .then((response) => {
           const orderToEdit = response.data;
 
@@ -108,7 +108,7 @@
           document.getElementById("Dish").value = orderToEdit["Choose Dish"];
           document.getElementById("Table").value = orderToEdit["Choose Table"];
 
-          axios.delete(`https://crudcrud.com/api/b9c76d7fe18448afa6fcca68dd9b88fe/customerOrders/${orderId}`)
+          axios.delete(`https://crudcrud.com/api/89038532812b4973a03862fe85db7252/customerOrders/${orderId}`)
             .then(() => {
               displayOrders();
             })
