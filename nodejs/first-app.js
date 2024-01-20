@@ -1,4 +1,16 @@
 const http = require('http');
-const modulehandler=require("./exp")
-const server = http.createServer(modulehandler)
-server.listen(4000);
+const express =require("express");
+const app=express();
+app.use((req,res,next)=>{
+  console.log("qwerty")
+  next()
+
+});
+app.use((req,res,next)=>{
+  console.log("wasd")
+  res.send("<h1>hi tauseef here</h1>")
+  
+
+});
+
+app.listen(4000);
