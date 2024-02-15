@@ -1,56 +1,41 @@
-const path=require('path')
-const express=require('express')
-const fs=require('fs')
-const app=express()
-const mysql=require('mysql2/promise')
-const pool=mysql.createPool({
-  host:'localhost',
-  user:'root',
-  database:'book-appointment',
-  password:'aA@11111'
-})
-pool.execute('SELECT * FROM appointments')
-  .then(([rows, fields]) => {
-    console.log(rows); 
-  })
-  .catch(error => {
-    console.error('Error executing query:', error);
-  });
-const htmlFilePath = path.join(__dirname, 'bookappoint.html');
-const bodyParser=require("body-parser");
-const { writeFileSync } = require('fs');
-app.use(bodyParser.urlencoded({extended: false}));
-app.get('/book',(req,res)=>{
-  res.sendFile(htmlFilePath)
-}
-)
-app.post('/book',(req,res)=>{
-  pool.execute('INSERT INTO appointments (name,email,phone,date,time) VALUES(?,?,?,?,?)',[req.body.name,req.body.email,req.body.phone,req.body.date,req.body.time])
-  .then(() => {
-    // Fetch all appointments from the database
-    return pool.execute('SELECT * FROM appointments');
-  })
-  .then(([appointments]) => {
-    // Send the list of appointments as JSON
-    res.json(appointments);
-  })
+// backend/bookapp.js
 
-  // let bookapp=[]
-  // bookapp =JSON.parse(fs.readFileSync('bookapp.txt','utf8'))
+const express = require('express');
+const bodyParser = require('body-parser');
+const mysql = require('mysql2/promise');
+const cors = require('cors');
+const app = express();
+const PORT = 8000;
+app.use(cors());
+// Create a MySQL connection pool
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  database: 'bookings', // Change the database name if needed
+  password: 'aA@11111' // Change the password
+});
 
-  // if (req.body){
-    
-  //   bookapp.push(req.body)
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
 
-  // }
-  // fs.writeFileSync('bookapp.txt',JSON.stringify(bookapp) + '\n')
-  // console.log(bookapp)
+app.post('/book', async (req, res) => {
+  const { name, email, phone, date, time } = req.body;
 
+  try {
+    // Insert appointment into the database
+    const [result] = await pool.execute('INSERT INTO appointments (name, email, phone, date, time) VALUES (?, ?, ?, ?, ?)', [name, email, phone, date, time]);
 
-  
-  
-})
+    // Get the inserted appointment data from the database
+    const [appointment] = await pool.execute('SELECT * FROM appointments WHERE id = ?', [result.insertId]);
 
-app.listen(8000,()=>{
-  console.log('server is running on 8000')
-})
+    // Send success response with the appointment data
+    res.status(201).json({ message: 'Appointment booked successfully', appointment: appointment[0] });
+  } catch (error) {
+    console.error('Error booking appointment:', error);
+    res.status(500).json({ error: 'Failed to book appointment' });
+  }
+});
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

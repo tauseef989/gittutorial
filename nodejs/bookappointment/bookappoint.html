@@ -4,58 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Book an Appointment</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    .container h2 {
-      margin-bottom: 20px;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: inline-block;
-      width: 120px;
-      text-align: right;
-      margin-right: 10px;
-    }
-    input[type="text"],
-    input[type="number"],
-    input[type="date"],
-    input[type="time"],
-    button {
-      width: calc(100% - 130px);
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      background-color: red;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    hr {
-      margin-top: 20px;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
     <h2>Book an Appointment</h2>
-    <form action="/book" method="POST">
+    <form id="appointmentForm">
       <div class="form-group">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name">
@@ -78,7 +31,48 @@
       </div>
       <button type="submit">Submit</button>
     </form>
-    <hr>
+
+    <!-- Display submitted information here -->
+    <div id="submittedInfo"></div>
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+    document.getElementById('appointmentForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+
+      // Convert formData to JSON object
+      const jsonObject = {};
+      formData.forEach((value, key) => {
+        jsonObject[key] = value;
+      });
+
+      axios.post('http://localhost:8000/book', jsonObject)
+  .then(response => {
+    console.log('Appointment booked successfully:', response.data);
+    // Display submitted information below the form
+    displaySubmittedInfo(response.data.appointment);
+  })
+  .catch(error => {
+    console.error('Error booking appointment:', error.response.data.error);
+    // Optionally, you can display an error message to the user
+  });
+
+    });
+
+    // Function to display submitted information
+    function displaySubmittedInfo(data) {
+      const submittedInfoDiv = document.getElementById('submittedInfo');
+      submittedInfoDiv.innerHTML = `
+        <h3>Submitted Information:</h3>
+        <p>Name: ${data.name}</p>
+        <p>Email: ${data.email}</p>
+        <p>Phone: ${data.phone}</p>
+        <p>Date: ${data.date}</p>
+        <p>Time: ${data.time}</p>
+      `;
+    }
+  </script>
 </body>
 </html>
