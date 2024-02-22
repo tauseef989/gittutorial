@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Information</title>
+</head>
+<body>
+  <h2>Add Player Information</h2>
+  <form id="form-container">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name"><br>
+    <label for="DOB">Date of Birth:</label>
+    <input type="text" id="DOB" name="DOB"><br>
+    <label for="photo">Photo URL:</label>
+    <input type="url" id="photo" name="photo"><br>
+    <label for="birthplace">Birthplace:</label>
+    <input type="text" id="birthplace" name="birthplace"><br>
+    <label for="career">Career:</label>
+    <input type="text" id="career" name="career"><br>
+    <label for="fifties">Fifties:</label>
+    <input type="number" id="fifties" name="fifties"><br>
+    <label for="centuries">Centuries:</label>
+    <input type="number" id="centuries" name="centuries"><br>
+    <label for="wickets">Wickets:</label>
+    <input type="number" id="wickets" name="wickets"><br>
+    <label for="average">Average:</label>
+    <input type="number" id="average" name="average"><br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Search Player Information</h2>
+  <form id="searchForm">
+    <label for="searchInput">Search by Name:</label>
+    <input type="text" id="searchInput" name="search">
+    <button type="submit">Search</button>
+  </form>
+
+  <h2>Player Details</h2>
+  <div id="playerDetails"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+    const form = document.getElementById('form-container');
+    const searchForm = document.getElementById('searchForm');
+    const playerDetailsContainer = document.getElementById('playerDetails');
+
+    // Function to render player details
+    function renderPlayerDetails(player) {
+      playerDetailsContainer.innerHTML = '';
+      const playerInfo = document.createElement('div');
+      playerInfo.innerHTML = `
+        
+        <p ><strong>Name:</strong> ${player.Name} <button onclick="editPlayer('${player.Name}')">Edit</button></p>
+        <p><strong>Date of Birth:</strong> ${player.DateOfBirth}</p>
+        <p><strong>Photo URL:</strong> <img src="${player.PhotoUrl}" alt="${player.Name}" style="max-width: 200px;"></p>
+        <p><strong>Birthplace:</strong> ${player.Birthplace}</p>
+        <p><strong>Career:</strong> ${player.Career}</p>
+        <p><strong>Fifties:</strong> ${player.Fifties}</p>
+        <p><strong>Centuries:</strong> ${player.Centuries}</p>
+        <p><strong>Wickets:</strong> ${player.Wickets}</p>
+        <p><strong>Average:</strong> ${player.Average}</p>
+      `;
+      playerDetailsContainer.appendChild(playerInfo);
+    }
+    function editPlayer(playerName) {
+  // Send GET request to retrieve player information by name
+  axios.get(`http://localhost:8000/players/${playerName}`)
+    .then(response => {
+      const player = response.data;
+      // Populate form fields with existing player information
+      document.getElementById('name').value = player.Name;
+      document.getElementById('DOB').value = player.DateOfBirth;
+      document.getElementById('photo').value = player.PhotoUrl;
+      document.getElementById('birthplace').value = player.Birthplace;
+      document.getElementById('career').value = player.Career;
+      document.getElementById('fifties').value = player.Fifties;
+      document.getElementById('centuries').value = player.Centuries;
+      document.getElementById('wickets').value = player.Wickets;
+      document.getElementById('average').value = player.Average;
+
+      // Add event listener to form submission for updating player details
+      const form = document.getElementById('form-container');
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        const updatedPlayerData = {};
+        formData.forEach((value, key) => {
+          updatedPlayerData[key] = value;
+        });
+
+        // Send PUT request to update player information
+        axios.put(`http://localhost:8000/players/${player.Name}`, updatedPlayerData)
+          .then(response => {
+            console.log('Player updated successfully:', response.data);
+            // Optionally, you can update the player details displayed on the frontend
+          })
+          .catch(error => {
+            console.error('Error updating player:', error.response.data.error);
+            // Handle error and provide feedback to the user
+          });
+      });
+    })
+    .catch(error => {
+      console.error('Error retrieving player:', error.response.data.error);
+      // Handle error and provide feedback to the user
+    });
+}
+
+
+
+
+    // Submit form event listener
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const playerData = {};
+      formData.forEach((value, key) => {
+        playerData[key] = value;
+      });
+
+      // Send POST request to add player information
+      axios.post('http://localhost:8000/players', playerData)
+        .then(response => {
+          console.log('Player added successfully:', response.data);
+        })
+        .catch(error => {
+          console.error('Error adding player:', error.response.data.error);
+        });
+    });
+
+    // Search form event listener
+    searchForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const playerName = document.getElementById('searchInput').value;
+
+      // Send GET request to search for player by name
+      axios.get(`http://localhost:8000/players/${playerName}`)
+        .then(response => {
+          console.log('Player found:', response.data);
+          renderPlayerDetails(response.data);
+        })
+        .catch(error => {
+          console.error('Error searching for player:', error.response.data.error);
+          playerDetailsContainer.innerHTML = 'Player not found.';
+        });
+    });
+  </script>
+</body>
+</html>
