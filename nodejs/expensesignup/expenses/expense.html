@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker</title>
+</head>
+<body>
+  <div class="container">
+    <h2>Expense Tracker</h2>
+    <form id="expenseForm">
+      <div class="form-group">
+        <label for="amount">Amount:</label>
+        <input type="text" id="amount" name="amount">
+      </div>
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description">
+      </div>
+      <div class="form-group">
+        <label for="category">Category:</label>
+        <select id="category" name="category">
+          <option value="groceries">Groceries</option>
+          <option value="utilities">Utilities</option>
+          <option value="entertainment">Entertainment</option>
+        </select>
+      </div>
+      <button type="submit">Add Expense</button>
+    </form>
+
+    <h2>Expenses</h2>
+    <ul id="expensesList"></ul>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+    const expenseForm = document.getElementById('expenseForm');
+    const expensesList = document.getElementById('expensesList');
+
+    expenseForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+
+      const jsonObject = {};
+      formData.forEach((value, key) => {
+        jsonObject[key] = value;
+      });
+
+      axios.post('http://localhost:8000/expenses', jsonObject)
+        .then(response => {
+          console.log('Expense added successfully:', response.data);
+          fetchExpenses();
+        })
+        .catch(error => {
+          console.error('Error adding expense:', error.response.data.error);
+        });
+    });
+
+    function fetchExpenses() {
+      axios.get('http://localhost:8000/expenses')
+        .then(response => {
+          displayExpenses(response.data);
+        })
+        .catch(error => {
+          console.error('Error fetching expenses:', error.response.data.error);
+        });
+    }
+
+    function displayExpenses(expenses) {
+      expensesList.innerHTML = '';
+      expenses.forEach(expense => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `Amount: ${expense.amount}, Description: ${expense.description}, Category: ${expense.category}`;
+        
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', function() {
+          deleteExpense(expense.id);
+        });
+
+        listItem.appendChild(deleteButton);
+
+        expensesList.appendChild(listItem);
+      });
+    }
+
+    function deleteExpense(expenseId) {
+      axios.delete(`http://localhost:8000/expenses/${expenseId}`)
+        .then(response => {
+          console.log('Expense deleted successfully:', response.data);
+          fetchExpenses();
+        })
+        .catch(error => {
+          console.error('Error deleting expense:', error.response.data.error);
+        });
+    }
+
+    fetchExpenses();
+  </script>
+</body>
+</html>
