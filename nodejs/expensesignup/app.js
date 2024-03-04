@@ -4,6 +4,10 @@ const cors = require("cors");
 const mysql = require("mysql2/promise");
 const bcrypt=require("bcrypt")
 const path = require('path');
+const jwt=require("jsonwebtoken")
+const crypto=require("crypto")
+const secretKey = crypto.randomBytes(32).toString('hex');
+const PORT=8000
 
 const app = express();
 const pool = mysql.createPool({
@@ -13,13 +17,14 @@ const pool = mysql.createPool({
   host: 'localhost'
 });
 
+
 app.use(cors());
 app.use(bodyParser.json());
 
-// Serve login.html from the specified directory
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'expensesignup', 'expenses', 'login.html'));
-});
+function generateToken(id){
+  return jwt.sign({userid:id},secretKey)
+}
+
 
 app.post("/login", async (req, res) => {
   const { Email, Password } = req.body;
@@ -35,14 +40,13 @@ app.post("/login", async (req, res) => {
     }
     console.log("Login successful:", user); // Logging the user data retrieved from the database
     // res.redirect('/expenses/expense'); // Redirect to expense.html upon successful login
-    res.send("login successfully")
+    res.send({ message: 'Login successfully', token: generateToken(user.id) });
+
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "An internal server error occurred" });
   }
 });
-
-
 
 
 app.post("/signup", async (req, res) => {
@@ -73,11 +77,15 @@ app.post('/expenses', async (req, res) => {
   }
 });
 
-// Endpoint to fetch all expenses
+// Endpoint to fetch all expense
 app.get('/expenses', async (req, res) => {
   try {
+    const token=req.header('Authorization')
+    const userid=jwt.verify(token,secretKey)
+    console.log(userid)
     // Fetch all expenses from the database
-    const [expenses] = await pool.execute('SELECT * FROM expenses');
+    const [expenses] = await pool.execute('SELECT * FROM expenses WHERE userid=?',[userid.userid]);
+    console.log(expenses)
     res.json(expenses);
   } catch (error) {
     console.error('Error fetching expenses:', error);
@@ -99,7 +107,7 @@ app.delete('/expenses/:id', async (req, res) => {
   }
 });
 
-
-app.listen(8000, () => {
-  console.log("Server is running on port 8000");
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
+

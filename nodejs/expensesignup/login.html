@@ -43,6 +43,7 @@
   <title>Login</title>
 </head>
 <body>
+  <h2>Login Page</h2>
   <form id="loginForm">
     <label for="email">Email</label>
     <input type="email" id="email" name="email"><br>
@@ -63,6 +64,7 @@
         .then(response => {
           console.log("123")
           console.log("Login successful", response.data);
+          localStorage.setItem('token',response.data.token)
           // Redirect to expense.html upon successful login
           window.location.href = "./expenses/expense.html"; // Change the URL as needed
         })
