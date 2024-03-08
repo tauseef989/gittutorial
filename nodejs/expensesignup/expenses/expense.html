@@ -27,26 +27,72 @@
       </div>
       <button type="submit">Add Expense</button>
     </form>
+    <button id="razorpay1">Buy Premium</button>
 
     <h2>Expenses</h2>
     <ul id="expensesList"></ul>
   </div>
-
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
+    document.getElementById('razorpay1').onclick = async function(e) {
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to buy premium.');
+        return;
+      }
+
+       try {
+        
+        const response = await axios.get('http://localhost:8000/purchase/premiummembership', { headers: { 'Authorization': token } });
+        console.log(response)
+      
+        const options = {
+          'key': response.data.key_id, 
+          'order_id': response.data.order.id,
+          'handler': async function(response) {
+            try {
+              await axios.post('http://localhost:8000/purchase/updatetransactionstatus', {
+                order_id: options.order_id, 
+                payment_id: response.razorpay_payment_id 
+              }, { headers: { 'Authorization': token } });
+              alert('You are now a premium user');
+            } catch (error) {
+              console.error('Error updating transaction status:', error);
+              alert('An error occurred while updating transaction status');
+            }
+          }
+        };
+        const rzp1 = new window.Razorpay(options);
+        console.log("rzp1-1")
+        rzp1.open();
+        console.log("rzp1-open")
+        e.preventDefault();
+        rzp1.on('payment.failed',function(response){
+          console.log(response)
+          alert("something went wrong")
+        })
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while fetching premium membership details');
+      }
+    };
+
     const expenseForm = document.getElementById('expenseForm');
     const expensesList = document.getElementById('expensesList');
+    const token = localStorage.getItem('token');
 
     expenseForm.addEventListener('submit', function(event) {
       event.preventDefault();
       const formData = new FormData(this);
-
       const jsonObject = {};
+
       formData.forEach((value, key) => {
         jsonObject[key] = value;
       });
 
-      axios.post('http://localhost:8000/expenses', jsonObject)
+      axios.post('http://localhost:8000/expenses', jsonObject, { headers: { 'Authorization': token } })
         .then(response => {
           console.log('Expense added successfully:', response.data);
           fetchExpenses();
@@ -57,8 +103,12 @@
     });
 
     function fetchExpenses() {
-      const token=localStorage.getItem('token')
-      axios.get('http://localhost:8000/expenses',{'headers':{'Authorization':token}})
+      if (!token) {
+        alert('Please login to fetch expenses.');
+        return;
+      }
+
+      axios.get('http://localhost:8000/expenses', { headers: { 'Authorization': token } })
         .then(response => {
           displayExpenses(response.data);
         })
@@ -80,13 +130,17 @@
         });
 
         listItem.appendChild(deleteButton);
-
         expensesList.appendChild(listItem);
       });
     }
 
     function deleteExpense(expenseId) {
-      axios.delete(`http://localhost:8000/expenses/${expenseId}`)
+      if (!token) {
+        alert('Please login to delete expenses.');
+        return;
+      }
+
+      axios.delete(`http://localhost:8000/expenses/${expenseId}`, { headers: { 'Authorization': token } })
         .then(response => {
           console.log('Expense deleted successfully:', response.data);
           fetchExpenses();
