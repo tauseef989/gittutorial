@@ -55,6 +55,32 @@ async function premiumbutton() {
       const message = document.createElement('p');
       message.textContent = 'You are now a premium user';
       premiumDiv.appendChild(message);
+      const button = document.createElement('button');
+      button.textContent = 'leaderboard';
+      button.id='leaderboardList'
+      premiumDiv.appendChild(button);
+
+
+  document.getElementById('leaderboardList').addEventListener('click', async () => {
+  const leaderboardList = document.getElementById('leaderboardList');
+
+  try {
+    const response = await axios.get('http://localhost:8000/leaderboard');
+    const data = response.data;
+
+    leaderboardList.innerHTML = ''; // Clear previous list items
+
+    data.forEach(user => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `${user.name}: ${user.total_amount} total amount spent`;
+      leaderboardList.appendChild(listItem);
+    });
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+});
+
+      
     }
   } catch (error) {
     console.error("Error:", error);
@@ -63,6 +89,9 @@ async function premiumbutton() {
 }
 
 premiumbutton();
+
+
+
 
     document.getElementById('razorpay1').onclick = async function(e) {
       

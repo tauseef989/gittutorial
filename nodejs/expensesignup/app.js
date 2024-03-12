@@ -39,6 +39,24 @@ app.use('/expenses', expensesrouter)
 app.use(signuprouter)
 app.use(loginrouter)
 
+app.get('/leaderboard', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(`
+      SELECT u.name, COALESCE(SUM(e.amount), 0) AS total_amount
+      FROM users u
+      LEFT JOIN expenses e ON u.id = e.userid
+      GROUP BY u.id, u.name
+      ORDER BY total_amount DESC
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('An error occurred:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the leaderboard' });
+  }
+});
+
+
+
 app.get('/ispremiummember', async (req, res) => {
   try {
     const token = req.header('Authorization');
