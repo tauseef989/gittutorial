@@ -27,7 +27,10 @@
       </div>
       <button type="submit">Add Expense</button>
     </form>
-    <button id="razorpay1">Buy Premium</button>
+    <div id="premium">
+      <button id="razorpay1">Buy Premium</button>
+    </div>
+    
 
     <h2>Expenses</h2>
     <ul id="expensesList"></ul>
@@ -35,6 +38,32 @@
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
+async function premiumbutton() {
+  const token = localStorage.getItem('token');
+  try {
+    const response = await axios.get('http://localhost:8000/ispremiummember', { headers: { 'Authorization': token } });
+    const ispremiummember = response.data.key;
+    const premiumDiv = document.getElementById('premium');
+    
+    if (ispremiummember) {
+      // Remove all child nodes of the premium div
+      while (premiumDiv.firstChild) {
+        premiumDiv.removeChild(premiumDiv.firstChild);
+      }
+      
+      // Append a new message indicating the user is now a premium member
+      const message = document.createElement('p');
+      message.textContent = 'You are now a premium user';
+      premiumDiv.appendChild(message);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    // Handle error if request fails
+  }
+}
+
+premiumbutton();
+
     document.getElementById('razorpay1').onclick = async function(e) {
       
       const token = localStorage.getItem('token');
