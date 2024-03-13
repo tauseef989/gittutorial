@@ -10,7 +10,8 @@ const bcrypt=require("bcrypt")
 const path = require('path');
 const jwt=require("jsonwebtoken")
 const crypto=require("crypto")
-const Razorpay=require('razorpay')
+const Razorpay=require('razorpay');
+const { connected } = require('process');
 const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
 require('dotenv').config();
 
@@ -38,16 +39,47 @@ router.post('/', async (req, res) => {
   console.log('alpha',token)
   const userid=jwt.verify(token,secretKey)
   const { amount, description, category } = req.body;
+  const connection=await pool.getConnection()
 
   try {
+    await connection.beginTransaction()
     // Insert expense into the database
     await pool.execute('INSERT INTO expenses (amount, description, category,userid) VALUES (?, ?, ?, ?)', [amount, description, category,userid.userid]);
     await pool.execute('UPDATE users SET total_expenses=total_expenses+? WHERE id=?',[amount,userid.userid])
+    await connection.commit()
     res.status(201).json({ message: 'Expense added successfully' });
   } catch (error) {
+    await connection.rollback()
     console.error('Error adding expense:', error);
     res.status(500).json({ error: 'Failed to add expense' });
   }
+  // Endpoint to delete an expense by ID
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  const token=req.header('Authorization')
+  console.log('beta',token)
+  const userid=jwt.verify(token,secretKey)
+  const connection=await pool.getConnection()
+
+  try {
+    await connection.beginTransaction()
+    // Delete expense from the database
+    const [expense] = await pool.execute('SELECT amount FROM expenses WHERE id = ?', [id]);
+    const amount = expense[0].amount;
+    await pool.execute('UPDATE users SET total_expenses = total_expenses - ? WHERE id = ?', [amount, userid.userid]);
+    await pool.execute('DELETE FROM expenses WHERE id = ?', [id]);
+    
+    await connection.commit()
+    res.json({ message: 'Expense deleted successfully' });
+  } catch (error) {
+    await connection.rollback()
+    console.error('Error deleting expense:', error);
+    res.status(500).json({ error: 'Failed to delete expense' });
+  }finally {
+    connection.release(); // Release the connection back to the pool
+  }
+
+});
 });
 
 // Endpoint to fetch all expense
@@ -70,15 +102,29 @@ router.get('/', async (req, res) => {
 // Endpoint to delete an expense by ID
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+  const token=req.header('Authorization')
+  console.log('beta',token)
+  const userid=jwt.verify(token,secretKey)
+  const connection=await pool.getConnection()
 
   try {
+    await connection.beginTransaction()
     // Delete expense from the database
+    const [expense] = await pool.execute('SELECT amount FROM expenses WHERE id = ?', [id]);
+    const amount = expense[0].amount;
+    await pool.execute('UPDATE users SET total_expenses = total_expenses - ? WHERE id = ?', [amount, userid.userid]);
     await pool.execute('DELETE FROM expenses WHERE id = ?', [id]);
+    
+    await connection.commit()
     res.json({ message: 'Expense deleted successfully' });
   } catch (error) {
+    await connection.rollback()
     console.error('Error deleting expense:', error);
     res.status(500).json({ error: 'Failed to delete expense' });
+  }finally {
+    connection.release(); // Release the connection back to the pool
   }
+
 });
 
 module.exports=router

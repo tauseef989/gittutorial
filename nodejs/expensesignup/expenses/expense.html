@@ -41,7 +41,7 @@
 async function premiumbutton() {
   const token = localStorage.getItem('token');
   try {
-    const response = await axios.get('http://localhost:8000/ispremiummember', { headers: { 'Authorization': token } });
+    const response = await axios.get('http://localhost:8000/premium/ispremiummember', { headers: { 'Authorization': token } });
     const ispremiummember = response.data.key;
     const premiumDiv = document.getElementById('premium');
     
@@ -65,7 +65,7 @@ async function premiumbutton() {
   const leaderboardList = document.getElementById('leaderboardList');
 
   try {
-    const response = await axios.get('http://localhost:8000/leaderboard');
+    const response = await axios.get('http://localhost:8000/premium/leaderboard');
     const data = response.data;
 
     leaderboardList.innerHTML = ''; // Clear previous list items
