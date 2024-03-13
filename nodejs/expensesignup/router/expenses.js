@@ -42,6 +42,7 @@ router.post('/', async (req, res) => {
   try {
     // Insert expense into the database
     await pool.execute('INSERT INTO expenses (amount, description, category,userid) VALUES (?, ?, ?, ?)', [amount, description, category,userid.userid]);
+    await pool.execute('UPDATE users SET total_expenses=total_expenses+? WHERE id=?',[amount,userid.userid])
     res.status(201).json({ message: 'Expense added successfully' });
   } catch (error) {
     console.error('Error adding expense:', error);

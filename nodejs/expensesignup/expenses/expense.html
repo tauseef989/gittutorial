@@ -72,7 +72,7 @@ async function premiumbutton() {
 
     data.forEach(user => {
       const listItem = document.createElement('li');
-      listItem.textContent = `${user.name}: ${user.total_amount} total amount spent`;
+      listItem.textContent = `${user.name}: ${user.total_expenses} total amount spent`;
       leaderboardList.appendChild(listItem);
     });
   } catch (error) {
