@@ -50,11 +50,20 @@
     <label for="password">Password</label>
     <input type="password" id="password" name="password"><br>
     <button type="submit">Login</button>
+    <button id="forgot" >Forgot password</button>
+    
   </form>
+  
+  
   <p style="margin-top: 20px;">Don't have an account? <a href="signup.html" class="navigation-link"  target="_blank">Signup </a></p>
   <h3 id="authorization"></h3>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
+    document.getElementById('forgot').addEventListener('click',function(event){
+      event.preventDefault();
+      window.location.href="./expenses/email.html"
+
+    })
     document.getElementById("loginForm").addEventListener("submit", function(event) {
       event.preventDefault(); // Prevent default form submission
       const email = document.getElementById("email").value;

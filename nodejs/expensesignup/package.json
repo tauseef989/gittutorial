@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "razorpay": "^2.9.2"
+    "razorpay": "^2.9.2",
+    "sib-api-v3-sdk": "^8.5.0"
   }
 }

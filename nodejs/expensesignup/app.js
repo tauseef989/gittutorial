@@ -11,7 +11,17 @@ const Razorpay=require('razorpay')
 const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
 const PORT = process.env.PORT || 8000;
 const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
-const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET; 
+const Sib =require("sib-api-v3-sdk")
+const client=Sib.ApiClient.instance
+const apiKey=client.authentications['api-key']
+apiKey.apiKey=process.env.API_KEY 
+const tranEmailApi=new Sib.TransactionalEmailsApi()
+const sender={
+  email:"tauseef989@gmail.com",
+  name:"tauseef"
+}
+
 
 const orderrouter=require("./router/orders")
 const expensesrouter=require("./router/expenses")
@@ -41,6 +51,27 @@ app.use('/expenses', expensesrouter)
 app.use(signuprouter)
 app.use(loginrouter)
 app.use('/premium',premiumrouter)
+app.get("/password/forgotpassword", async (req, res) => {
+  const { email } = req.query; 
+  const receivers = [{
+    email: email
+  }];
+
+  try {
+    await tranEmailApi.sendTransacEmail({
+      sender,
+      to: receivers,
+      subject: "hi welcome to expensetrackerapp",
+      textContent: 'your password is "12345"'
+    });
+
+    res.status(200).send("Password reset email sent successfully.");
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    res.status(500).send("An error occurred while sending the password reset email.");
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
