@@ -30,6 +30,8 @@
     <div id="premium">
       <button id="razorpay1">Buy Premium</button>
     </div>
+    <button id="report" style="display: none;">Report</button>
+
     
 
     <h2>Expenses</h2>
@@ -38,6 +40,7 @@
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
+
 async function premiumbutton() {
   const token = localStorage.getItem('token');
   try {
@@ -46,6 +49,8 @@ async function premiumbutton() {
     const premiumDiv = document.getElementById('premium');
     
     if (ispremiummember) {
+      document.getElementById('report').style.display = 'block';
+
       // Remove all child nodes of the premium div
       while (premiumDiv.firstChild) {
         premiumDiv.removeChild(premiumDiv.firstChild);

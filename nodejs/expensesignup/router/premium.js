@@ -35,7 +35,7 @@ function generateToken(id){
 
 router.get('/leaderboard', async (req, res) => {
   try {
-    const [rows] = await pool.execute(`SELECT * FROM users ORDER BY total_expenses DESC`);
+    const [rows] = await pool.execute(`SELECT * FROM users ORDER BY total_expenses ASC`);
 
     res.json(rows);
   } catch (error) {

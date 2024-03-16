@@ -31,6 +31,7 @@
       axios.post("http://localhost:8000/signup", obj) // Send POST request to backend
       .then(response => {
         console.log("Sent successfully", response.data);
+        window.location.replace('./login.html')
       })
       .catch(error => {
         console.log("Failed", error.response.data.error);

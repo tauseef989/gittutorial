@@ -2,7 +2,6 @@ const express = require('express');// Import the Express module
 const app = express();// Create an instance of the Express application
 const router = express.Router(); // Import the Router module from Express
 
-
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
@@ -14,8 +13,6 @@ const Razorpay=require('razorpay');
 const { connected } = require('process');
 const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
 require('dotenv').config();
-
-
 
 
 const pool = mysql.createPool({
@@ -40,11 +37,12 @@ router.post('/', async (req, res) => {
   const userid=jwt.verify(token,secretKey)
   const { amount, description, category } = req.body;
   const connection=await pool.getConnection()
+  const currentTime = new Date().toISOString();
 
   try {
     await connection.beginTransaction()
     // Insert expense into the database
-    await pool.execute('INSERT INTO expenses (amount, description, category,userid) VALUES (?, ?, ?, ?)', [amount, description, category,userid.userid]);
+    await pool.execute('INSERT INTO expenses (amount, description, category,userid,created_at) VALUES (?, ?, ?, ?, ?)', [amount, description, category,userid.userid,currentTime]);
     await pool.execute('UPDATE users SET total_expenses=total_expenses+? WHERE id=?',[amount,userid.userid])
     await connection.commit()
     res.status(201).json({ message: 'Expense added successfully' });
@@ -60,6 +58,7 @@ router.delete('/:id', async (req, res) => {
   console.log('beta',token)
   const userid=jwt.verify(token,secretKey)
   const connection=await pool.getConnection()
+  
 
   try {
     await connection.beginTransaction()
