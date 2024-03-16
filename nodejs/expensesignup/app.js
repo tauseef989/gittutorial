@@ -21,14 +21,19 @@ const sender={
   email:"tauseef989@gmail.com",
   name:"tauseef"
 }
-
+const { v4: uuidv4 } = require('uuid');
+// Function to generate UUID for IDs
+function generateUUID() {
+  return uuidv4();
+}
 
 const orderrouter=require("./router/orders")
 const expensesrouter=require("./router/expenses")
 const signuprouter=require("./router/signup")
 const loginrouter=require('./router/login')
 const premiumrouter=require('./router/premium')
-
+const passwordrouter=require('./router/password')
+const filePath = path.join(__dirname, 'expenses', 'reset.html');
 
 const app = express();
 const pool = mysql.createPool({
@@ -51,31 +56,73 @@ app.use('/expenses', expensesrouter)
 app.use(signuprouter)
 app.use(loginrouter)
 app.use('/premium',premiumrouter)
-app.get("/password/forgotpassword", async (req, res) => {
-  const { email } = req.query; 
-  const receivers = [{
-    email: email
-  }];
+app.use('/password',passwordrouter)
 
-  try {
-    await tranEmailApi.sendTransacEmail({
-      sender,
-      to: receivers,
-      subject: "hi welcome to expensetrackerapp",
-      textContent: 'your password is "12345"'
-    });
-
-    res.status(200).send("Password reset email sent successfully.");
-  } catch (error) {
-    console.error("Error sending password reset email:", error);
-    res.status(500).send("An error occurred while sending the password reset email.");
-  }
-});
 
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// app.post("password/newpassword",async(req,res)=>{
+//   const {password,uuid}=req.body
+//   const hashedpassword= await bcrypt.hash(password,10)
+//   await pool.execute('UPDATE forgotpasswordrequest SET isactive="NO" WHERE id=?',[uuid])
+//   const [rows]=await pool.execute('SELECT userid FROM forgotpasswordrequest WHERE id=? ',[uuid]) 
+
+//   const id =rows[0].userid
+//   await pool.execute('UPDATE users SET password=? WHERE id=?',[hashedpassword,id])
+//   console.log("updated sucessfully")
+//   res.status(200).json({ message: "Password updated successfully" });
+// })
+
+
+// app.get("password/resetpassword/:id", async (req, res) => {
+//   const id = req.params.id;
+//   const [rows] = await pool.execute('SELECT * FROM forgotpasswordrequest WHERE id=?', [id]);
+//   const userid = rows[0].userid;
+
+//   if (rows[0].isactive === "YES") {
+//     const token = generateToken(userid);
+//     res.sendFile(filePath);
+//   } else {
+//     console.log("Link is expired");
+//     res.status(400).json({ error: "Link is expired" });
+//   }
+// });
+
+
+
+// app.get("password/forgotpassword", async (req, res) => {
+//   const id = generateUUID();
+//   const { email } = req.query; 
+
+//   try {
+//     const [rows] = await pool.execute('SELECT id FROM users WHERE email=?', [email]);
+    
+//     if (!rows.length) {
+//       return res.status(404).json({ error: "User not found" });
+//     }
+
+//     const userid = rows[0].id;
+
+//     await pool.execute('INSERT INTO forgotpasswordrequest (id, userid, isactive) VALUES (?, ?, "YES")', [id, userid]);
+
+//     const receivers = [{ email: email }];
+
+//     await tranEmailApi.sendTransacEmail({
+//       sender,
+//       to: receivers,
+//       subject: 'Password Reset Request',
+//       textContent: `Please visit the following URL to reset your password: http://localhost:8000/password/resetpassword/${id}`
+//     });
+
+//     res.status(200).json({ message: "Password reset email sent successfully." });
+//   } catch (error) {
+//     console.error("Error sending password reset email:", error);
+//     res.status(500).json({ error: "An error occurred while sending the password reset email." });
+//   }
+// });
 
 // app.get('/leaderboard', async (req, res) => {
 //   try {

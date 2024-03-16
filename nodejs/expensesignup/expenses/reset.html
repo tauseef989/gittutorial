@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <form id="reset">
+    <!-- Hidden input field to store the UUID -->
+    <input type="hidden" id="uuid" name="uuid"> 
+    <label for="password">Enter your new password:</label>
+    <input id="password" type="password" name="password">
+    <button type="submit">submit</button>
+  </form>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+    // Function to extract the UUID from the URL
+    function getUuidFromUrl() {
+      const url = window.location.href;
+      const uuidIndex = url.lastIndexOf('/') + 1;
+      return url.substring(uuidIndex);
+    }
+
+    // Set the UUID value in the hidden input field when the page loads
+    window.onload = function() {
+      const uuid = getUuidFromUrl();
+      document.getElementById("uuid").value = uuid;
+    };
+
+    // Event listener for form submission
+    document.getElementById("reset").addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = document.getElementById("password").value;
+      const uuid = document.getElementById("uuid").value;
+      const obj = {
+        password: password,
+        uuid: uuid
+      };
+
+      try {
+        const response = await axios.post('http://localhost:8000/password/newpassword', obj);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    });
+  </script>
+</body>
+</html>
