@@ -31,6 +31,7 @@
       <button id="razorpay1">Buy Premium</button>
     </div>
     <button id="report" style="display: none;">Report</button>
+    <button id="download"> Download</button>
 
     
 
@@ -40,6 +41,26 @@
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
+document.getElementById('download').onclick = async function (e) {
+  e.preventDefault();
+  try {
+    const response = await axios.get('http://localhost:8000/download', {
+      headers: { 'Authorization': token }
+    });
+    if (response.status === 200) {
+      const fileUrl = response.data.fileURL;
+      const a = document.createElement("a");
+      a.href = fileUrl;
+      a.download = 'myexpense.csv';
+      a.click();
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    showError(error); // Corrected from 'err' to 'error'
+  }
+};
+
 
 async function premiumbutton() {
   const token = localStorage.getItem('token');

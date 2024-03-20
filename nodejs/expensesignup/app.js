@@ -26,7 +26,7 @@ const { v4: uuidv4 } = require('uuid');
 function generateUUID() {
   return uuidv4();
 }
-
+const AWS=require('aws-sdk')
 const orderrouter=require("./router/orders")
 const expensesrouter=require("./router/expenses")
 const signuprouter=require("./router/signup")
@@ -44,6 +44,7 @@ const pool = mysql.createPool({
 });
 
 
+
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -51,12 +52,104 @@ function generateToken(id){
   return jwt.sign({userid:id},secretKey)
 }
 
+
+
+function uploadToS3(data, filename) {
+  const BUCKET_NAME = 'expensetracker23';
+  const IAM_USER_KEY = 'AKIA2UC3BEPQ7XEKCTUS';
+  const IAM_USER_SECRET = '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';
+
+  // Configure AWS SDK
+  AWS.config.update({
+    accessKeyId: IAM_USER_KEY,
+    secretAccessKey: IAM_USER_SECRET
+  });
+
+  const s3bucket = new AWS.S3();
+
+  return new Promise((resolve, reject) => {
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: filename,
+      Body: data,
+      ACL:'public-read'
+    };
+
+    s3bucket.upload(params, (err, s3response) => {
+      if (err) {
+        console.log('Error uploading to S3:', err);
+        reject(err);
+      } else {
+        console.log('Successfully uploaded to S3:', s3response.Location);
+        resolve(s3response.Location);
+      }
+    });
+  });
+}
+
+app.get('/download', async (req, res) => {
+  try {
+    const token = req.header('authorization');
+    const userid = jwt.verify(token, secretKey);
+
+    const [expenses] = await pool.execute('SELECT * FROM expenses WHERE userid=?', [userid.userid]);
+    const stringifiedExpenses = JSON.stringify(expenses);
+    const filename = `expenses${userid}/${new Date()}.txt`;
+
+    const fileURL = await uploadToS3(stringifiedExpenses, filename);
+
+    res.status(200).json({ fileURL, success: true });
+  } catch (error) {
+    console.error('Error in download route:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// function uploadToS3(data,filename){
+//   const BUCKET_NAME='expensetracker23'
+//   const IAM_USER_KEY='AKIA2UC3BEPQ7XEKCTUS'
+//   const IAM_USER_SECRET='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'
+//   let s3bucket=new AWS.S3({
+//     accessKeyId:IAM_USER_KEY,
+//     secretAccessKey:IAM_USER_SECRET
+//     // bucket:BUCKET_NAME
+//   })
+//   s3bucket.createBucket(()=>{
+//     var params={
+//       Bucket:BUCKET_NAME,
+//       Key:filename,
+//       Body:data
+//     }
+//     s3bucket.upload(params,(err,s3response)=>{
+//       if (err){
+//         console.log('something went wrong',err)
+//       }
+//       else{
+//         console.log('success',s3response)
+//       }
+//     })
+//   })
+
+
+// }
+
 app.use('/purchase',orderrouter)
 app.use('/expenses', expensesrouter)
 app.use(signuprouter)
 app.use(loginrouter)
 app.use('/premium',premiumrouter)
 app.use('/password',passwordrouter)
+// app.get('/download',async (req,res)=>{
+//   const token=req.header('authorization')
+//   const userid=jwt.verify(token,secretKey)
+//   const expenses=await pool.execute('SELECT * FROM expenses WHERE userid=?',[userid.userid])
+
+//   const stringifiedexpenses=JSON.stringify(expenses)
+//   const filename=expenses.txt
+//   const fileURL=uploadToS3(stringifiedexpenses,filename)
+//   res.status(200).JSON({fileURL, success :true})
+
+// })
 
 
 

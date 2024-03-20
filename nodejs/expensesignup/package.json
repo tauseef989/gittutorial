@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1581.0",
     "razorpay": "^2.9.2",
     "sib-api-v3-sdk": "^8.5.0",
     "uuid": "^9.0.1"
