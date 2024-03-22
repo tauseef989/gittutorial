@@ -37,10 +37,13 @@
 
     <h2>Expenses</h2>
     <ul id="expensesList"></ul>
+    <ul id="pagination"></ul>
   </div>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
+   const noofexpenseperpage=2;
+    let start=1 ;
 document.getElementById('download').onclick = async function (e) {
   e.preventDefault();
   try {
@@ -166,6 +169,8 @@ premiumbutton();
     const expenseForm = document.getElementById('expenseForm');
     const expensesList = document.getElementById('expensesList');
     const token = localStorage.getItem('token');
+    const pagination = document.getElementById('pagination');
+   
 
     expenseForm.addEventListener('submit', function(event) {
       event.preventDefault();
@@ -179,29 +184,41 @@ premiumbutton();
       axios.post('http://localhost:8000/expenses', jsonObject, { headers: { 'Authorization': token } })
         .then(response => {
           console.log('Expense added successfully:', response.data);
-          fetchExpenses();
+          console.log(start,noofexpenseperpage)
+          fetchExpenses(start,noofexpenseperpage);
         })
         .catch(error => {
           console.error('Error adding expense:', error.response.data.error);
         });
     });
 
-    function fetchExpenses() {
+    function fetchExpenses(start,noofexpenseperpage) {
+      const a=noofexpenseperpage
+      const b=start
       if (!token) {
         alert('Please login to fetch expenses.');
         return;
       }
 
-      axios.get('http://localhost:8000/expenses', { headers: { 'Authorization': token } })
+      axios.get(`http://localhost:8000/expenses?pn=${start}&noe=${noofexpenseperpage}`, { headers: { 'Authorization': token } })
         .then(response => {
-          displayExpenses(response.data);
+          const {expenses,limit}=response.data
+          console.log(expenses,limit)
+          displayExpenses(expenses,limit,a,b);
         })
         .catch(error => {
           console.error('Error fetching expenses:', error.response.data.error);
         });
     }
 
-    function displayExpenses(expenses) {
+
+
+
+
+    function displayExpenses(expenses,limit,a,b) {
+      const lim=limit 
+      const start=b
+      const noofexpenseperpage=a 
       expensesList.innerHTML = '';
       expenses.forEach(expense => {
         const listItem = document.createElement('li');
@@ -215,8 +232,29 @@ premiumbutton();
 
         listItem.appendChild(deleteButton);
         expensesList.appendChild(listItem);
+        paginationb(start,noofexpenseperpage,lim)
       });
     }
+    function paginationb(start, noofexpenseperpage, limit) {
+      console.log('paginationb',start,noofexpenseperpage,limit)
+    
+    pagination.innerHTML = '';
+
+    if (start >= 2 && start <= limit) {
+        const prevButton = document.createElement('button');
+        prevButton.innerText = "Prev";
+        prevButton.onclick = () => fetchExpenses(start - 1, noofexpenseperpage);
+        pagination.appendChild(prevButton);
+    }
+
+    if (start >= 1 && start < limit) {
+        const nextButton = document.createElement('button');
+        nextButton.innerText = "Next";
+        nextButton.onclick = () => fetchExpenses(start + 1, noofexpenseperpage);
+        pagination.appendChild(nextButton);
+    }
+}
+
 
     function deleteExpense(expenseId) {
       if (!token) {
@@ -234,7 +272,7 @@ premiumbutton();
         });
     }
 
-    fetchExpenses();
+    fetchExpenses(1,2);
   </script>
 </body>
 </html>

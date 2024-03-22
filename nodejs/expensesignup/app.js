@@ -56,8 +56,8 @@ function generateToken(id){
 
 function uploadToS3(data, filename) {
   const BUCKET_NAME = 'expensetracker23';
-  const IAM_USER_KEY = 'AKIA2UC3BEPQ7XEKCTUS';
-  const IAM_USER_SECRET = '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';
+  const IAM_USER_KEY = process.env.IAM_USER_KEY;
+  const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
 
   // Configure AWS SDK
   AWS.config.update({

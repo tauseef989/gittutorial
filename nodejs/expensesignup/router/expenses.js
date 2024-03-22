@@ -84,14 +84,20 @@ router.delete('/:id', async (req, res) => {
 // Endpoint to fetch all expense
 router.get('/', async (req, res) => {
   try {
+    const {pn,noe}=req.query
+    console.log(pn,noe)
+    const start_index = (parseInt(pn) - 1) * parseInt(noe);
+    const last_index = start_index + parseInt(noe);
+    console.log(start_index,last_index)
     const token=req.header('Authorization')
     console.log('beta',token)
     const userid=jwt.verify(token,secretKey)
     console.log(userid)
     // Fetch all expenses from the database
     const [expenses] = await pool.execute('SELECT * FROM expenses WHERE userid=?',[userid.userid]);
-    console.log(expenses)
-    res.json(expenses);
+    const limit=Math.ceil(expenses.length/parseInt(noe))
+    // console.log(expenses.slice(start_index,last_index))
+    res.json({expenses:expenses.slice(start_index,last_index),limit:limit});
   } catch (error) {
     console.error('Error fetching expenses:', error);
     res.status(500).json({ error: 'Failed to fetch expenses' });
