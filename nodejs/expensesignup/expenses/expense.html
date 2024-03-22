@@ -36,14 +36,18 @@
     
 
     <h2>Expenses</h2>
+    <form>
+      <label for="noofexpenseperpage">noofexpenseperpage:</label>
+      <input type="number" id="noofexpenseperpage" name="noofexpenseperpage" >
+      <button type="submit" id="noe">submit</button>
+    </form>
     <ul id="expensesList"></ul>
     <ul id="pagination"></ul>
   </div>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
-   const noofexpenseperpage=2;
-    let start=1 ;
+
 document.getElementById('download').onclick = async function (e) {
   e.preventDefault();
   try {
@@ -65,7 +69,7 @@ document.getElementById('download').onclick = async function (e) {
 };
 
 
-async function premiumbutton() {
+async function premiumbutton(noe) {
   const token = localStorage.getItem('token');
   try {
     const response = await axios.get('http://localhost:8000/premium/ispremiummember', { headers: { 'Authorization': token } });
@@ -170,6 +174,16 @@ premiumbutton();
     const expensesList = document.getElementById('expensesList');
     const token = localStorage.getItem('token');
     const pagination = document.getElementById('pagination');
+    
+    let noofexpenseperpage=3;
+    let start=1;
+    console.log(start,noofexpenseperpage)
+    document.getElementById('noe').onclick=async function(e){
+      e.preventDefault();
+      const noofexpenseperpage=document.getElementById('noofexpenseperpage').value
+      fetchExpenses(1,noofexpenseperpage)
+      console.log("id-noe",noofexpenseperpage)
+    }
    
 
     expenseForm.addEventListener('submit', function(event) {
@@ -184,7 +198,7 @@ premiumbutton();
       axios.post('http://localhost:8000/expenses', jsonObject, { headers: { 'Authorization': token } })
         .then(response => {
           console.log('Expense added successfully:', response.data);
-          console.log(start,noofexpenseperpage)
+          console.log('axios.post',start,noofexpenseperpage)
           fetchExpenses(start,noofexpenseperpage);
         })
         .catch(error => {
@@ -193,14 +207,15 @@ premiumbutton();
     });
 
     function fetchExpenses(start,noofexpenseperpage) {
-      const a=noofexpenseperpage
+      let a=noofexpenseperpage
       const b=start
+      console.log("fetchexpense",b,a)
       if (!token) {
         alert('Please login to fetch expenses.');
         return;
       }
 
-      axios.get(`http://localhost:8000/expenses?pn=${start}&noe=${noofexpenseperpage}`, { headers: { 'Authorization': token } })
+      axios.get(`http://localhost:8000/expenses?pn=${b}&noe=${a}`, { headers: { 'Authorization': token } })
         .then(response => {
           const {expenses,limit}=response.data
           console.log(expenses,limit)
