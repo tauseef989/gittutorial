@@ -13,7 +13,6 @@ const crypto=require("crypto")
 const Razorpay=require('razorpay')
 const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
 require('dotenv').config();
-const filePath = path.join(__dirname, 'expenses', 'reset.html');
 
 
 
@@ -32,9 +31,16 @@ app.use(bodyParser.json());
 function generateToken(id){
   return jwt.sign({userid:id},secretKey)
 }
-const controllerpassword=require('../controller/controllerpassword')
 
-router.post("/newpassword",controllerpassword.postnewpassword)
-router.get("/resetpassword/:id", controllerpassword.getresetpassword);
-router.get("/forgotpassword",controllerpassword.getforgotpassword);
-module.exports=router
+exports.postsignup=async (req, res) => {
+  const { Name, Email, Password } = req.body;
+  try {
+    const hashedpassword= await bcrypt.hash(Password,10)
+    await pool.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [Name, Email, hashedpassword]);
+    console.log(Name, Email, hashedpassword);
+    res.send("Received successfully");
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Error occurred");
+  }
+};

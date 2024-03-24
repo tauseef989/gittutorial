@@ -32,17 +32,6 @@ function generateToken(id){
   return jwt.sign({userid:id},secretKey)
 }
 
-router.post("/signup", async (req, res) => {
-  const { Name, Email, Password } = req.body;
-  try {
-    const hashedpassword= await bcrypt.hash(Password,10)
-    await pool.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [Name, Email, hashedpassword]);
-    console.log(Name, Email, hashedpassword);
-    res.send("Received successfully");
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Error occurred");
-  }
-});
-
+const controllersignup=require('../controller/controllersignup')
+router.post("/signup", controllersignup.postsignup);
 module.exports=router

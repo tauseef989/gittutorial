@@ -31,29 +31,9 @@ app.use(bodyParser.json());
 function generateToken(id){
   return jwt.sign({userid:id},secretKey)
 }
+const controllerlogin=require('../controller/controllerlogin')
 
-
-router.post("/login", async (req, res) => {
-  const { Email, Password } = req.body;
-  try {
-    const [rows] = await pool.execute("SELECT * FROM users WHERE email=?", [Email]);
-    if (rows.length === 0) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
-    const user = rows[0];
-    const isValidPassword = await bcrypt.compare(Password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
-    console.log("Login successful:", user); // Logging the user data retrieved from the database
-    // res.redirect('/expenses/expense'); // Redirect to expense.html upon successful login
-    res.send({ message: 'Login successfully', token: generateToken(user.id) });
-
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "An internal server error occurred" });
-  }
-});
+router.post("/login", controllerlogin.post);
 
 
 module.exports=router

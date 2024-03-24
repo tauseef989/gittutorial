@@ -1,40 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-</head>
-<body>
-  <form id="loginForm">
-    <label for="email">Email</label>
-    <input type="email" id="email" name="email">
-    <label for="password">Password</label>
-    <input type="password" id="password" name="password">
-    <button type="submit">Login</button>
-  </form>
-  <h3 id="authorization"></h3>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", function(event) {
-      event.preventDefault(); // Prevent default form submission
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const obj = { Email: email, Password: password };
-      axios.post("http://localhost:8000/login", obj)
-      .then(response => {
-          console.log("Login successful", response.data);
-          // Redirect to expense.html upon successful login
-          window.location.href = "/expenses/expense"; // Change the URL as needed
-        })
-        .catch(error => {
-          console.error("Login failed", error.response.data.error);
-          // Handle login failure (e.g., display error message)
-        });
-    });
-  </script>
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,7 +38,7 @@
           console.log("Login successful", response.data);
           localStorage.setItem('token',response.data.token)
           // Redirect to expense.html upon successful login
-          window.location.href = "./expenses/expense.html"; // Change the URL as needed
+          window.location.href = "./expense.html"; // Change the URL as needed
         })
         .catch(error => {
           console.log("456")

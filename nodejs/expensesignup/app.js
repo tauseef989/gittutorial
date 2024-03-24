@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require("express");
+const fs=require('fs')
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
@@ -9,7 +10,7 @@ const jwt=require("jsonwebtoken")
 const crypto=require("crypto")
 const Razorpay=require('razorpay')
 const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT;
 const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
 const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET; 
 const Sib =require("sib-api-v3-sdk")
@@ -26,6 +27,8 @@ const { v4: uuidv4 } = require('uuid');
 function generateUUID() {
   return uuidv4();
 }
+const morgan=require('morgan')
+const helmet=require('helmet')
 const AWS=require('aws-sdk')
 const orderrouter=require("./router/orders")
 const expensesrouter=require("./router/expenses")
@@ -33,18 +36,20 @@ const signuprouter=require("./router/signup")
 const loginrouter=require('./router/login')
 const premiumrouter=require('./router/premium')
 const passwordrouter=require('./router/password')
+const downloadrouter=require('./router/download')
 const filePath = path.join(__dirname, 'expenses', 'reset.html');
 
 const app = express();
 const pool = mysql.createPool({
-  user: 'root',
-  database: 'expense',
-  password: 'aA@11111',
-  host: 'localhost'
+  user: process.env.DB_USER,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST
 });
 
-
-
+const accesslogstream=fs.createWriteStream(path.join(__dirname,'access.log'),{flags :'a'})
+app.use(helmet())
+app.use(morgan('combined',{stream:accesslogstream }))
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -87,321 +92,14 @@ function uploadToS3(data, filename) {
   });
 }
 
-app.get('/download', async (req, res) => {
-  try {
-    const token = req.header('authorization');
-    const userid = jwt.verify(token, secretKey);
 
-    const [expenses] = await pool.execute('SELECT * FROM expenses WHERE userid=?', [userid.userid]);
-    const stringifiedExpenses = JSON.stringify(expenses);
-    const filename = `expenses${userid}/${new Date()}.txt`;
-
-    const fileURL = await uploadToS3(stringifiedExpenses, filename);
-
-    res.status(200).json({ fileURL, success: true });
-  } catch (error) {
-    console.error('Error in download route:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// function uploadToS3(data,filename){
-//   const BUCKET_NAME='expensetracker23'
-//   const IAM_USER_KEY='AKIA2UC3BEPQ7XEKCTUS'
-//   const IAM_USER_SECRET='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'
-//   let s3bucket=new AWS.S3({
-//     accessKeyId:IAM_USER_KEY,
-//     secretAccessKey:IAM_USER_SECRET
-//     // bucket:BUCKET_NAME
-//   })
-//   s3bucket.createBucket(()=>{
-//     var params={
-//       Bucket:BUCKET_NAME,
-//       Key:filename,
-//       Body:data
-//     }
-//     s3bucket.upload(params,(err,s3response)=>{
-//       if (err){
-//         console.log('something went wrong',err)
-//       }
-//       else{
-//         console.log('success',s3response)
-//       }
-//     })
-//   })
-
-
-// }
-
+app.use(downloadrouter)
 app.use('/purchase',orderrouter)
 app.use('/expenses', expensesrouter)
 app.use(signuprouter)
 app.use(loginrouter)
 app.use('/premium',premiumrouter)
 app.use('/password',passwordrouter)
-// app.get('/download',async (req,res)=>{
-//   const token=req.header('authorization')
-//   const userid=jwt.verify(token,secretKey)
-//   const expenses=await pool.execute('SELECT * FROM expenses WHERE userid=?',[userid.userid])
-
-//   const stringifiedexpenses=JSON.stringify(expenses)
-//   const filename=expenses.txt
-//   const fileURL=uploadToS3(stringifiedexpenses,filename)
-//   res.status(200).JSON({fileURL, success :true})
-
-// })
-
-
-
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-// app.post("password/newpassword",async(req,res)=>{
-//   const {password,uuid}=req.body
-//   const hashedpassword= await bcrypt.hash(password,10)
-//   await pool.execute('UPDATE forgotpasswordrequest SET isactive="NO" WHERE id=?',[uuid])
-//   const [rows]=await pool.execute('SELECT userid FROM forgotpasswordrequest WHERE id=? ',[uuid]) 
-
-//   const id =rows[0].userid
-//   await pool.execute('UPDATE users SET password=? WHERE id=?',[hashedpassword,id])
-//   console.log("updated sucessfully")
-//   res.status(200).json({ message: "Password updated successfully" });
-// })
-
-
-// app.get("password/resetpassword/:id", async (req, res) => {
-//   const id = req.params.id;
-//   const [rows] = await pool.execute('SELECT * FROM forgotpasswordrequest WHERE id=?', [id]);
-//   const userid = rows[0].userid;
-
-//   if (rows[0].isactive === "YES") {
-//     const token = generateToken(userid);
-//     res.sendFile(filePath);
-//   } else {
-//     console.log("Link is expired");
-//     res.status(400).json({ error: "Link is expired" });
-//   }
-// });
-
-
-
-// app.get("password/forgotpassword", async (req, res) => {
-//   const id = generateUUID();
-//   const { email } = req.query; 
-
-//   try {
-//     const [rows] = await pool.execute('SELECT id FROM users WHERE email=?', [email]);
-    
-//     if (!rows.length) {
-//       return res.status(404).json({ error: "User not found" });
-//     }
-
-//     const userid = rows[0].id;
-
-//     await pool.execute('INSERT INTO forgotpasswordrequest (id, userid, isactive) VALUES (?, ?, "YES")', [id, userid]);
-
-//     const receivers = [{ email: email }];
-
-//     await tranEmailApi.sendTransacEmail({
-//       sender,
-//       to: receivers,
-//       subject: 'Password Reset Request',
-//       textContent: `Please visit the following URL to reset your password: http://localhost:8000/password/resetpassword/${id}`
-//     });
-
-//     res.status(200).json({ message: "Password reset email sent successfully." });
-//   } catch (error) {
-//     console.error("Error sending password reset email:", error);
-//     res.status(500).json({ error: "An error occurred while sending the password reset email." });
-//   }
-// });
-
-// app.get('/leaderboard', async (req, res) => {
-//   try {
-//     const [rows] = await pool.execute(`
-//       SELECT u.name, COALESCE(SUM(e.amount), 0) AS total_amount
-//       FROM users u
-//       LEFT JOIN expenses e ON u.id = e.userid
-//       GROUP BY u.id, u.name
-//       ORDER BY total_amount DESC
-//     `);
-//     res.json(rows);
-//   } catch (error) {
-//     console.error('An error occurred:', error);
-//     res.status(500).json({ error: 'An error occurred while fetching the leaderboard' });
-//   }
-// });
-
-
-
-
-
-
-
-
-
-// app.post("/purchase/updatetransactionstatus", async (req, res) => {
-//   console.log("apple")
-//   try {
-//     console.log("apple")
-//     const { order_id, payment_id } = req.body;
-    
-//     // Get a connection from the pool
-//     const connection = await pool.getConnection();
-//     // Begin the transaction
-//     await connection.beginTransaction();
-//     try {  
-//       // Update the transaction status in the database
-//       await connection.execute("UPDATE orders SET status = 'COMPLETED' WHERE order_id = ?", [order_id]);
-//       await connection.execute("UPDATE orders SET payment_id = ? WHERE order_id = ?", [payment_id, order_id]);
-
-//       // Commit the transaction
-//       await connection.commit();
-
-//       // Release the connection back to the pool
-//       connection.release();
-
-//       // Return a success message
-//       res.json({ message: "Transaction status updated successfully" });
-//     } catch (error) {
-//       // Rollback the transaction in case of an error
-//       await connection.rollback();
-//       console.error("Error updating transaction status:", error);
-//       res.status(500).json({ error: "Failed to update transaction status" });
-//     } finally {
-//       // Ensure to release the connection in case of any error
-//       if (connection) {
-//         connection.release();
-//       }
-//     }
-//   } catch (error) {
-//     console.error("Error establishing database connection:", error);
-//     res.status(500).json({ error: "Database connection error" });
-//   }
-// });
-
-
-// app.get("/purchase/premiummembership", async (req, res) => {
-//   const token=req.header('Authorization')
-//   // console.log('premiummembership',token)
-//   const userid=jwt.verify(token,secretKey)
-//   // console.log(userid)
-//   try {
-//     const rzp = new Razorpay({
-//       key_id: process.env.RAZORPAY_KEY_ID,
-//       key_secret: process.env.RAZORPAY_KEY_SECRET
-//     });
-
-//     const amount = 2500;
-
-//     // Create a new order using async/await
-//     const order = await new Promise((resolve, reject) => {
-//       rzp.orders.create({ amount, currency: 'INR' }, (err, order) => {
-//         if (err) {
-//           reject(err);
-//         } else {
-//           resolve(order);
-//         }
-//       });
-//     });
-
-//     await pool.execute('INSERT INTO orders(order_id, status, user_id) VALUES (?, ?, ?)', [order.id, 'PENDING', userid.userid]);
-
-//     // Return the response
-//     console.log("getsucessfull-123")
-//     res.status(201).json({ order, key_id: rzp.key_id });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(403).json({ message: 'Something went wrong', error: err });
-//   }
-// });
-
-
-
-// app.post("/login", async (req, res) => {
-//   const { Email, Password } = req.body;
-//   try {
-//     const [rows] = await pool.execute("SELECT * FROM users WHERE email=?", [Email]);
-//     if (rows.length === 0) {
-//       return res.status(401).json({ error: "Invalid email or password" });
-//     }
-//     const user = rows[0];
-//     const isValidPassword = await bcrypt.compare(Password, user.password);
-//     if (!isValidPassword) {
-//       return res.status(401).json({ error: "Invalid email or password" });
-//     }
-//     console.log("Login successful:", user); // Logging the user data retrieved from the database
-//     // res.redirect('/expenses/expense'); // Redirect to expense.html upon successful login
-//     res.send({ message: 'Login successfully', token: generateToken(user.id) });
-
-//   } catch (error) {
-//     console.error("Error:", error);
-//     res.status(500).json({ error: "An internal server error occurred" });
-//   }
-// });
-
-
-// app.post("/signup", async (req, res) => {
-//   const { Name, Email, Password } = req.body;
-//   try {
-//     const hashedpassword= await bcrypt.hash(Password,10)
-//     await pool.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [Name, Email, hashedpassword]);
-//     console.log(Name, Email, hashedpassword);
-//     res.send("Received successfully");
-//   } catch (error) {
-//     console.error("Error:", error);
-//     res.status(500).send("Error occurred");
-//   }
-// });
-
-
-// Endpoint to handle expense creation
-// app.post('/expenses', async (req, res) => {
-//   const token=req.header('Authorization')
-//   console.log('alpha',token)
-//   const userid=jwt.verify(token,secretKey)
-//   const { amount, description, category } = req.body;
-
-//   try {
-//     // Insert expense into the database
-//     await pool.execute('INSERT INTO expenses (amount, description, category,userid) VALUES (?, ?, ?, ?)', [amount, description, category,userid.userid]);
-//     res.status(201).json({ message: 'Expense added successfully' });
-//   } catch (error) {
-//     console.error('Error adding expense:', error);
-//     res.status(500).json({ error: 'Failed to add expense' });
-//   }
-// });
-
-
-// Endpoint to fetch all expense
-// app.get('/expenses', async (req, res) => {
-//   try {
-//     const token=req.header('Authorization')
-//     console.log('beta',token)
-//     const userid=jwt.verify(token,secretKey)
-//     console.log(userid)
-//     // Fetch all expenses from the database
-//     const [expenses] = await pool.execute('SELECT * FROM expenses WHERE userid=?',[userid.userid]);
-//     console.log(expenses)
-//     res.json(expenses);
-//   } catch (error) {
-//     console.error('Error fetching expenses:', error);
-//     res.status(500).json({ error: 'Failed to fetch expenses' });
-//   }
-// });
-
-
-// Endpoint to delete an expense by ID
-// app.delete('/expenses/:id', async (req, res) => {
-//   const { id } = req.params;
-
-//   try {
-//     // Delete expense from the database
-//     await pool.execute('DELETE FROM expenses WHERE id = ?', [id]);
-//     res.json({ message: 'Expense deleted successfully' });
-//   } catch (error) {
-//     console.error('Error deleting expense:', error);
-//     res.status(500).json({ error: 'Failed to delete expense' });
-//   }
-// });

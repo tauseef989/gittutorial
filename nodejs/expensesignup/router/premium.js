@@ -31,37 +31,7 @@ app.use(bodyParser.json());
 function generateToken(id){
   return jwt.sign({userid:id},secretKey)
 }
-
-
-router.get('/leaderboard', async (req, res) => {
-  try {
-    const [rows] = await pool.execute(`SELECT * FROM users ORDER BY total_expenses ASC`);
-
-    res.json(rows);
-  } catch (error) {
-    console.error('An error occurred:', error);
-    res.status(500).json({ error: 'An error occurred while fetching the leaderboard' });
-  }
-});   
-
-
-
-router.get('/ispremiummember', async (req, res) => {
-  try {
-    const token = req.header('Authorization');
-    const userid = jwt.verify(token, secretKey);
-
-    const [rows] = await pool.execute('SELECT user_id, payment_id FROM orders WHERE user_id = ? AND payment_id IS NOT NULL', [userid.userid]);
-
-    if (rows.length !== 0) {
-      res.status(200).json({ key: true });
-    } else {
-      res.status(200).json({ key: false });
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "An internal server error occurred" });
-  }
-});
-
+const controllerpremium=require('../controller/controllerpremium')
+router.get('/leaderboard', controllerpremium.getleaderboard);   
+router.get('/ispremiummember', controllerpremium.getispremiummember);
 module.exports=router;
