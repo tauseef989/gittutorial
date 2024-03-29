@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signup</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <h2>Signup Page</h2>
+  <form>
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name"><br>
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email"><br>
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password"><br>
+    <button type="button" onclick="submitForm()">Signup</button> <!-- Changed button type to "button" -->
+  </form>
+  <p style="margin-top: 20px;">Already have an account? <a href="login.html" class="navigation-link"  target="_blank">Login </a></p>
+  <script>
+    function submitForm(){
+      const name=document.getElementById("name").value
+      const email=document.getElementById("email").value
+      const password=document.getElementById("password").value
+      const obj={
+        Name:name,
+        Email:email,
+        Password:password
+      }
+      axios.post("http://localhost:8000/signup", obj) // Send POST request to backend
+      .then(response => {
+        console.log("Sent successfully", response.data);
+        window.location.replace('./login.html')
+      })
+      .catch(error => {
+        console.log("Failed", error.response.data.error);
+      });
+    }
+  </script>
+</body> 
+</html>
