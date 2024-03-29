@@ -18,7 +18,7 @@
       const email = document.getElementById("Email").value;
       
       try {
-        const response = await axios.get(`http://localhost:8000/password/forgotpassword?email=${email}`);
+        const response = await axios.get(`http://54.158.57.174/password/forgotpassword?email=${email}`);
         console.log(response.data); 
       } catch (error) {
         console.error("Error:", error);

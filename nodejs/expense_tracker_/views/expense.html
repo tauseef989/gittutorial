@@ -51,7 +51,7 @@
 document.getElementById('download').onclick = async function (e) {
   e.preventDefault();
   try {
-    const response = await axios.get('http://localhost:8000/download', {
+    const response = await axios.get('http://54.158.57.174/download', {
       headers: { 'Authorization': token }
     });
     if (response.status === 200) {
@@ -72,7 +72,7 @@ document.getElementById('download').onclick = async function (e) {
 async function premiumbutton(noe) {
   const token = localStorage.getItem('token');
   try {
-    const response = await axios.get('http://localhost:8000/premium/ispremiummember', { headers: { 'Authorization': token } });
+    const response = await axios.get('http://54.158.57.174/premium/ispremiummember', { headers: { 'Authorization': token } });
     const ispremiummember = response.data.key;
     const premiumDiv = document.getElementById('premium');
     
@@ -98,7 +98,7 @@ async function premiumbutton(noe) {
   const leaderboardList = document.getElementById('leaderboardList');
 
   try {
-    const response = await axios.get('http://localhost:8000/premium/leaderboard');
+    const response = await axios.get('http://54.158.57.174/premium/leaderboard');
     const data = response.data;
 
     leaderboardList.innerHTML = ''; // Clear previous list items
@@ -136,7 +136,7 @@ premiumbutton();
 
        try {
         
-        const response = await axios.get('http://localhost:8000/purchase/premiummembership', { headers: { 'Authorization': token } });
+        const response = await axios.get('http://54.158.57.174/purchase/premiummembership', { headers: { 'Authorization': token } });
         console.log(response)
       
         const options = {
@@ -144,7 +144,7 @@ premiumbutton();
           'order_id': response.data.order.id,
           'handler': async function(response) {
             try {
-              await axios.post('http://localhost:8000/purchase/updatetransactionstatus', {
+              await axios.post('http://54.158.57.174/purchase/updatetransactionstatus', {
                 order_id: options.order_id, 
                 payment_id: response.razorpay_payment_id 
               }, { headers: { 'Authorization': token } });
@@ -195,7 +195,7 @@ premiumbutton();
         jsonObject[key] = value;
       });
 
-      axios.post('http://localhost:8000/expenses', jsonObject, { headers: { 'Authorization': token } })
+      axios.post('http://54.158.57.174/expenses', jsonObject, { headers: { 'Authorization': token } })
         .then(response => {
           console.log('Expense added successfully:', response.data);
           console.log('axios.post',start,noofexpenseperpage)
@@ -215,7 +215,7 @@ premiumbutton();
         return;
       }
 
-      axios.get(`http://localhost:8000/expenses?pn=${b}&noe=${a}`, { headers: { 'Authorization': token } })
+      axios.get(`http://54.158.57.174/expenses?pn=${b}&noe=${a}`, { headers: { 'Authorization': token } })
         .then(response => {
           const {expenses,limit}=response.data
           console.log(expenses,limit)
@@ -277,7 +277,7 @@ premiumbutton();
         return;
       }
 
-      axios.delete(`http://localhost:8000/expenses/${expenseId}`, { headers: { 'Authorization': token } })
+      axios.delete(`http://54.158.57.174/expenses/${expenseId}`, { headers: { 'Authorization': token } })
         .then(response => {
           console.log('Expense deleted successfully:', response.data);
           fetchExpenses();
