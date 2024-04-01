@@ -92,7 +92,9 @@ function uploadToS3(data, filename) {
   });
 }
 
-
+app.use((req,res)=>{
+  res.sendFile(path.join(__dirname,`views/${req.url}`))
+})
 app.use(downloadrouter)
 app.use('/purchase',orderrouter)
 app.use('/expenses', expensesrouter)
