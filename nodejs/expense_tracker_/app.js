@@ -28,7 +28,7 @@ function generateUUID() {
   return uuidv4();
 }
 const morgan=require('morgan')
-const helmet=require('helmet')
+// const helmet=require('helmet')
 const AWS=require('aws-sdk')
 const orderrouter=require("./router/orders")
 const expensesrouter=require("./router/expenses")
@@ -48,7 +48,7 @@ const pool = mysql.createPool({
 });
 
 const accesslogstream=fs.createWriteStream(path.join(__dirname,'access.log'),{flags :'a'})
-app.use(helmet())
+// app.use(helmet())
 app.use(morgan('combined',{stream:accesslogstream }))
 app.use(cors());
 app.use(bodyParser.json());
