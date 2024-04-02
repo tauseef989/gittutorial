@@ -33,5 +33,5 @@ function generateToken(id){
 }
 
 const controllersignup=require('../controller/controllersignup')
-router.post("/signup", controllersignup.postsignup);
+router.post("/", controllersignup.postsignup);
 module.exports=router

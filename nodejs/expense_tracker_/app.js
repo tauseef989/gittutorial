@@ -98,8 +98,8 @@ app.use((req,res)=>{
 app.use(downloadrouter)
 app.use('/purchase',orderrouter)
 app.use('/expenses', expensesrouter)
-app.use(signuprouter)
-app.use(loginrouter)
+app.use('/signup',signuprouter)
+app.use('/login',loginrouter)
 app.use('/premium',premiumrouter)
 app.use('/password',passwordrouter)
 app.listen(PORT, () => {
