@@ -64,6 +64,7 @@ exports.getresetpassword= async (req, res) => {
 
 exports.getforgotpassword=async (req, res) => {
   const id = generateUUID();
+  console.log(id,"after uuid")
   const { email } = req.query; 
 
   try {
@@ -74,6 +75,7 @@ exports.getforgotpassword=async (req, res) => {
     }
 
     const userid = rows[0].id;
+    console.log(id,"before pool")
 
     await pool.execute('INSERT INTO forgotpasswordrequest (id, userid, isactive) VALUES (?, ?, ?)', [id, userid,"YES"]);
 
