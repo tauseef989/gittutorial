@@ -19,7 +19,6 @@
       
       try {
         const response = await axios.get(`http://44.204.25.6:8000/password/forgotpassword?email=${email}`);
-        document.getElementById("Email").reset();
         console.log(response.data); 
       } catch (error) {
         console.error("Error:", error);
