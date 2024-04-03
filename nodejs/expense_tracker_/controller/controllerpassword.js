@@ -23,6 +23,11 @@ const sender={
   email:"tauseef989@gmail.com",
   name:"tauseef"
 }
+const { v4: uuidv4 } = require('uuid');
+// Function to generate UUID for IDs
+function generateUUID() {
+  return uuidv4();
+}
 
 
 const pool = mysql.createPool({
@@ -32,11 +37,7 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST
 });
 
-const { v4: uuidv4 } = require('uuid');
-// Function to generate UUID for IDs
-function generateUUID() {
-  return uuidv4();
-}
+
 app.use(cors());
 app.use(bodyParser.json());
 
