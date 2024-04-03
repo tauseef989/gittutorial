@@ -13,7 +13,7 @@ const crypto=require("crypto")
 const Razorpay=require('razorpay')
 const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
 require('dotenv').config();
-const filePath = path.join(__dirname, 'expenses', 'reset.html');
+const filePath = path.join(__dirname, 'views', 'reset.html');
 
 
 
