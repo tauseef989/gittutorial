@@ -31,7 +31,7 @@ function generateToken(id){
 
 
 function uploadToS3(data, filename) {
-  const BUCKET_NAME = 'expensetracker23';
+  const BUCKET_NAME = 'expensetrackingapp123';
   const IAM_USER_KEY = process.env.IAM_USER_KEY;
   const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
 

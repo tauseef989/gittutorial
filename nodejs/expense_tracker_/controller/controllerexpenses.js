@@ -38,11 +38,12 @@ exports.post = async (req, res) => {
   const { amount, description, category } = req.body;
   const connection=await pool.getConnection()
   const currentTime = new Date().toISOString();
+  const u=userid.userid
 
   try {
     await connection.beginTransaction()
     // Insert expense into the database
-    await pool.execute('INSERT INTO expenses (amount, description, category,userid,created_at) VALUES (?, ?, ?, ?, ?)', [amount, description, category,userid.userid,currentTime]);
+    await pool.execute('INSERT INTO expenses (amount, description, category,userid,created_at) VALUES (?, ?, ?, ?, ?)', [amount, description, category,u,currentTime]);
     await pool.execute('UPDATE users SET total_expenses=total_expenses+? WHERE id=?',[amount,userid.userid])
     await connection.commit()
     res.status(201).json({ message: 'Expense added successfully' });

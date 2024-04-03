@@ -60,7 +60,7 @@ function generateToken(id){
 
 
 function uploadToS3(data, filename) {
-  const BUCKET_NAME = 'expensetracker23';
+  const BUCKET_NAME = 'expensetrackingapp123';
   const IAM_USER_KEY = process.env.IAM_USER_KEY;
   const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
 
@@ -91,10 +91,6 @@ function uploadToS3(data, filename) {
     });
   });
 }
-
-// app.use((req,res)=>{
-//   res.sendFile(path.join(__dirname,`views/${req.url}`))
-// })
 app.use(express.static(path.join(__dirname,'./views')));
 app.use(downloadrouter)
 app.use('/purchase',orderrouter)
