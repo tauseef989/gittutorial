@@ -15,7 +15,11 @@ const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a4
 require('dotenv').config();
 const filePath = path.join(__dirname, 'views', 'reset.html');
 
-
+const tranEmailApi=new Sib.TransactionalEmailsApi()
+const sender={
+  email:"tauseef989@gmail.com",
+  name:"tauseef"
+}
 
 
 const pool = mysql.createPool({
