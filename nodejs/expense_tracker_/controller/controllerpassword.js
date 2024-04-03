@@ -87,7 +87,7 @@ exports.getforgotpassword=async (req, res) => {
       sender,
       to: receivers,
       subject: 'Password Reset Request',
-      textContent: `Please visit the following URL to reset your password: http://localhost:8000/password/resetpassword/${id}`
+      textContent: `Please visit the following URL to reset your password: http://44.204.25.6:8000/password/resetpassword/${id}`
     });
 
     res.status(200).json({ message: "Password reset email sent successfully." });
