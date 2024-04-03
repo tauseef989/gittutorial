@@ -24,7 +24,7 @@
   <script>
     document.getElementById('forgot').addEventListener('click',function(event){
       event.preventDefault();
-      window.location.href="./expenses/email.html"
+      window.location.href="./email.html"
 
     })
     document.getElementById("loginForm").addEventListener("submit", function(event) {
@@ -34,14 +34,12 @@
       const obj = { Email: email, Password: password };
       axios.post("http://44.204.25.6:8000/login", obj)
         .then(response => {
-          console.log("123")
           console.log("Login successful", response.data);
           localStorage.setItem('token',response.data.token)
           // Redirect to expense.html upon successful login
           window.location.href = "./expense.html"; // Change the URL as needed
         })
         .catch(error => {
-          console.log("456")
           console.error("Login failed", error.response.data.error);
           // Handle login failure (e.g., display error message)
         });
