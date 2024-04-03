@@ -19,10 +19,10 @@ const filePath = path.join(__dirname, 'expenses', 'reset.html');
 
 
 const pool = mysql.createPool({
-  user: 'root',
-  database: 'expense',
-  password: 'aA@11111',
-  host: 'localhost'
+  user: process.env.DB_USER,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST
 });
 
 
@@ -75,7 +75,7 @@ exports.getforgotpassword=async (req, res) => {
 
     const userid = rows[0].id;
 
-    await pool.execute('INSERT INTO forgotpasswordrequest (id, userid, isactive) VALUES (?, ?, "YES")', [id, userid]);
+    await pool.execute('INSERT INTO forgotpasswordrequest (id, userid, isactive) VALUES (?, ?, ?)', [id, userid,"YES"]);
 
     const receivers = [{ email: email }];
 
