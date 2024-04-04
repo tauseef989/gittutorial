@@ -11,9 +11,9 @@ const path = require('path');
 const jwt=require("jsonwebtoken")
 const crypto=require("crypto")
 const Razorpay=require('razorpay')
-const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
+const secretKey=process.env.SECRET_KEY
 require('dotenv').config();
-const filePath = path.join(__dirname, 'views', 'reset.html');
+const filePath = path.join(__dirname,'../', 'views', 'reset.html');
 const Sib =require("sib-api-v3-sdk")
 const client=Sib.ApiClient.instance
 const apiKey=client.authentications['api-key']
@@ -76,7 +76,6 @@ exports.getresetpassword= async (req, res) => {
 
 exports.getforgotpassword=async (req, res) => {
   const id = generateUUID();
-  console.log(id,"aftergenerateuuid")
   const { email } = req.query; 
 
   try {
@@ -87,7 +86,6 @@ exports.getforgotpassword=async (req, res) => {
     }
 
     const userid = rows[0].id;
-    console.log(id,"beforepool")
 
     await pool.execute('INSERT INTO forgotpasswordrequest (id, userid, isactive) VALUES (?, ?, "YES")', [id, userid]);
 

@@ -11,7 +11,7 @@ const jwt=require("jsonwebtoken")
 const crypto=require("crypto")
 const Razorpay=require('razorpay');
 const { connected } = require('process');
-const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
+const secretKey=process.env.SECRET_KEY
 require('dotenv').config();
 
 
@@ -33,7 +33,6 @@ function generateToken(id){
 // Endpoint to handle expense creation
 exports.post = async (req, res) => {
   const token=req.header('Authorization')
-  console.log('alpha',token)
   const userid=jwt.verify(token,secretKey)
   const { amount, description, category } = req.body;
   const connection=await pool.getConnection()
@@ -58,14 +57,10 @@ exports.post = async (req, res) => {
 exports.get=async (req, res) => {
   try {
     const {pn,noe}=req.query
-    console.log(pn,noe)
     const start_index = (parseInt(pn) - 1) * parseInt(noe);
     const last_index = start_index + parseInt(noe);
-    console.log(start_index,last_index)
     const token=req.header('Authorization')
-    console.log('beta',token)
     const userid=jwt.verify(token,secretKey)
-    console.log(userid)
     // Fetch all expenses from the database
     const [expenses] = await pool.execute('SELECT * FROM expenses WHERE userid=?',[userid.userid]);
     const limit=Math.ceil(expenses.length/parseInt(noe))
@@ -81,7 +76,6 @@ exports.get=async (req, res) => {
 exports.delete= async (req, res) => {
   const { id } = req.params;
   const token=req.header('Authorization')
-  console.log('beta',token)
   const userid=jwt.verify(token,secretKey)
   const connection=await pool.getConnection()
 

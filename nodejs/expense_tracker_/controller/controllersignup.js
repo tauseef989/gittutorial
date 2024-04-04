@@ -11,7 +11,7 @@ const path = require('path');
 const jwt=require("jsonwebtoken")
 const crypto=require("crypto")
 const Razorpay=require('razorpay')
-const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
+const secretKey=process.env.SECRET_KEY
 require('dotenv').config();
 
 
@@ -37,7 +37,6 @@ exports.postsignup=async (req, res) => {
   try {
     const hashedpassword= await bcrypt.hash(Password,10)
     await pool.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [Name, Email, hashedpassword]);
-    console.log(Name, Email, hashedpassword);
     res.send("Received successfully");
   } catch (error) {
     console.error("Error:", error);

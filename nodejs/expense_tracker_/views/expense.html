@@ -156,9 +156,9 @@ premiumbutton();
           }
         };
         const rzp1 = new window.Razorpay(options);
-        console.log("rzp1-1")
+      
         rzp1.open();
-        console.log("rzp1-open")
+    
         e.preventDefault();
         rzp1.on('payment.failed',function(response){
           console.log(response)
@@ -177,12 +177,11 @@ premiumbutton();
     
     let noofexpenseperpage=3;
     let start=1;
-    console.log(start,noofexpenseperpage)
     document.getElementById('noe').onclick=async function(e){
       e.preventDefault();
       const noofexpenseperpage=document.getElementById('noofexpenseperpage').value
       fetchExpenses(1,noofexpenseperpage)
-      console.log("id-noe",noofexpenseperpage)
+    
     }
    
 
@@ -198,7 +197,6 @@ premiumbutton();
       axios.post('http://44.204.25.6:8000/expenses', jsonObject, { headers: { 'Authorization': token } })
         .then(response => {
           console.log('Expense added successfully:', response.data);
-          console.log('axios.post',start,noofexpenseperpage)
           fetchExpenses(start,noofexpenseperpage);
         })
         .catch(error => {
@@ -209,7 +207,7 @@ premiumbutton();
     function fetchExpenses(start,noofexpenseperpage) {
       let a=noofexpenseperpage
       const b=start
-      console.log("fetchexpense",b,a)
+
       if (!token) {
         alert('Please login to fetch expenses.');
         return;
@@ -218,7 +216,7 @@ premiumbutton();
       axios.get(`http://44.204.25.6:8000/expenses?pn=${b}&noe=${a}`, { headers: { 'Authorization': token } })
         .then(response => {
           const {expenses,limit}=response.data
-          console.log(expenses,limit)
+        
           displayExpenses(expenses,limit,a,b);
         })
         .catch(error => {
@@ -251,7 +249,7 @@ premiumbutton();
       });
     }
     function paginationb(start, noofexpenseperpage, limit) {
-      console.log('paginationb',start,noofexpenseperpage,limit)
+     
     
     pagination.innerHTML = '';
 

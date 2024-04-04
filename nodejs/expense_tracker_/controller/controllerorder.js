@@ -11,7 +11,7 @@ const path = require('path');
 const jwt=require("jsonwebtoken")
 const crypto=require("crypto")
 const Razorpay=require('razorpay')
-const secretKey ='e314d73d2ee88c916172ee2b4a82b4a44f0c70db5bfe8c303a30607b8b59a462'
+const secretKey=process.env.SECRET_KEY
 require('dotenv').config();
 
 
@@ -36,9 +36,9 @@ function generateToken(id){
 
 
 exports.post=async (req, res) => {
-  console.log("apple")
+
   try {
-    console.log("apple")
+ 
     const { order_id, payment_id } = req.body;
     
     // Get a connection from the pool
@@ -77,9 +77,9 @@ exports.post=async (req, res) => {
 
 exports.get = async (req, res) => {
   const token=req.header('Authorization')
-  // console.log('premiummembership',token)
+
   const userid=jwt.verify(token,secretKey)
-  // console.log(userid)
+
   try {
     const rzp = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
