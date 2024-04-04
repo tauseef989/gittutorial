@@ -35,7 +35,7 @@ function generateToken(id){
 
 exports.getleaderboard= async (req, res) => {
   try {
-    const [rows] = await pool.execute(`SELECT * FROM users ORDER BY total_expenses ASC`);
+    const [rows] = await pool.execute(`SELECT * FROM users ORDER BY total_expenses DESC`);
 
     res.json(rows);
   } catch (error) {
