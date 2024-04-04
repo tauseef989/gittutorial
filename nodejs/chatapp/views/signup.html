@@ -34,8 +34,14 @@
       }
       axios.post("http://localhost:8000/signup", obj) //Send POST request to backend
       .then(response => {
+        if (response.data==="User already exists, Please Login"){
+          alert("User already exists, Please Login")
+        }
+        else{
         console.log("Sent successfully", response.data);
+        alert("Successfuly signed up")
         window.location.replace('./login.html')
+        }
       })
       .catch(error => {
         console.log("Failed", error.response.data.error);
