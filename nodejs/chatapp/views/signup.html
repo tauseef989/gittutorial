@@ -32,7 +32,7 @@
         number:number,
         Password:password
       }
-      axios.post("http://localhost:8000/signup", obj) // Send POST request to backend
+      axios.post("http://localhost:8000/signup", obj) //Send POST request to backend
       .then(response => {
         console.log("Sent successfully", response.data);
         window.location.replace('./login.html')
