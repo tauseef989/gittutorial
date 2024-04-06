@@ -29,7 +29,8 @@ app.post('/user',async (req,res)=>{
   console.log(message,token,id,date)
   try{
     await pool.execute('INSERT INTO chat (id,message,dateandtime) VALUES(?,?,?)',[id.userid,message,date])
-    res.status(201).json({message:"message added successfully"})
+    const [rows]= await pool.execute('SELECT message FROM chat WHERE id=?',[id.userid])
+    res.status(201).json(rows)
 
 
 

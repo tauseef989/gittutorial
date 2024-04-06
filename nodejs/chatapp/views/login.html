@@ -34,7 +34,7 @@
         .then(response => {
           console.log("Login successful", response.data);
           localStorage.setItem('token',response.data.token)
-          window.location.href = "./user.html"; // Change the URL as needed
+          window.location.href = "./chat.html"; // Change the URL as needed
         })
         .catch(error => {
           console.error("Login failed", error.response.data.error);

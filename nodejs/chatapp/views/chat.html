@@ -12,6 +12,7 @@
     <input id="text" type="text" name="message" placeholder="Enter your message here"> 
     <button id="message">Send</button>
   </form>
+  <div id="m"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
     document.getElementById('message').addEventListener('click',(e)=>{
@@ -21,8 +22,20 @@
       const obj={
         message:m,
       }
-      console.log(m,token,obj)
       axios.post('http://localhost:8000/user',obj,{headers:{'Authorization':token}})
+      .then((response)=>{
+        const div=document.getElementById('m')
+        response.data.forEach(val=>{
+          const mess=val.message 
+          const p=document.createElement('p')
+          p.textContent=mess
+          div.appendChild(p)
+
+        })
+      
+
+      })
+
     })
   </script>
   
