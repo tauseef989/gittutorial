@@ -12,6 +12,19 @@
     <input id="text" type="text" name="message" placeholder="Enter your message here"> 
     <button id="message">Send</button>
   </form>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+    document.getElementById('message').addEventListener('click',(e)=>{
+      e.preventDefault();
+      const m = document.getElementById('text').value;
+      const token=localStorage.getItem('token')
+      const obj={
+        message:m,
+      }
+      console.log(m,token,obj)
+      axios.post('http://localhost:8000/user',obj,{headers:{'Authorization':token}})
+    })
+  </script>
   
 </body>
 </html>

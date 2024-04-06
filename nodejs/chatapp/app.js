@@ -21,6 +21,25 @@ function generateToken(id){
 app.use(cors());
 app.use(bodyParser.json());
 
+app.post('/user',async (req,res)=>{
+  const {message}=req.body 
+  const token=req.header('Authorization')
+  const id= jwt.verify(token,process.env.SECRET_KEY)
+  const date=new Date().toISOString()
+  console.log(message,token,id,date)
+  try{
+    await pool.execute('INSERT INTO chat (id,message,dateandtime) VALUES(?,?,?)',[id.userid,message,date])
+    res.status(201).json({message:"message added successfully"})
+
+
+
+  }
+  catch(error){
+    console.error('Error fetching expenses:', error);
+    res.status(500).json({ error: 'Failed to fetch expenses' });
+
+  }
+})
 app.post('/login',async (req, res) => {
   const { Email, Password } = req.body;
   try {
