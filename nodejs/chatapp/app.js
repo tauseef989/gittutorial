@@ -41,6 +41,23 @@ app.post('/user',async (req,res)=>{
 
   }
 })
+app.get('/user',async (req,res)=>{
+  const token=req.header('Authorization')
+  const id= jwt.verify(token,process.env.SECRET_KEY)
+  try{
+    const [rows]= await pool.execute('SELECT message FROM chat WHERE id=?',[id.userid])
+    res.status(201).json(rows)
+
+
+
+  }
+  catch(error){
+    console.error('Error fetching expenses:', error);
+    res.status(500).json({ error: 'Failed to fetch expenses' });
+
+  }
+
+})
 app.post('/login',async (req, res) => {
   const { Email, Password } = req.body;
   try {

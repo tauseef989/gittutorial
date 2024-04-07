@@ -18,13 +18,16 @@
     document.getElementById('message').addEventListener('click',(e)=>{
       e.preventDefault();
       const m = document.getElementById('text').value;
+      
       const token=localStorage.getItem('token')
       const obj={
         message:m,
       }
+      document.getElementById('text').value=''
       axios.post('http://localhost:8000/user',obj,{headers:{'Authorization':token}})
       .then((response)=>{
         const div=document.getElementById('m')
+        div.innerHTML=""
         response.data.forEach(val=>{
           const mess=val.message 
           const p=document.createElement('p')
@@ -37,6 +40,26 @@
       })
 
     })
+    function load(){
+      const token = localStorage.getItem('token');
+      axios.get('http://localhost:8000/user',{headers:{'Authorization':token}})
+      .then((response)=>{
+        const div=document.getElementById('m')
+        div.innerHTML=""
+        response.data.forEach(val=>{
+          const mess=val.message 
+          const p=document.createElement('p')
+          p.textContent=mess
+          div.appendChild(p)
+
+        })
+      
+
+      })
+  
+  
+    };
+    load()
   </script>
   
 </body>
