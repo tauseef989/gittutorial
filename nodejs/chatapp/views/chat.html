@@ -8,11 +8,12 @@
 <body>
   <h2>Chat App</h2>
   <p> you joined</p>
+  <div id="m"></div>
   <form id="chat">
     <input id="text" type="text" name="message" placeholder="Enter your message here"> 
     <button id="message">Send</button>
   </form>
-  <div id="m"></div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
     document.getElementById('message').addEventListener('click',(e)=>{
@@ -23,43 +24,52 @@
       const obj={
         message:m,
       }
+      const messag=JSON.parse(localStorage.getItem('messag'))||[];
+      messag.push(obj) 
+      localStorage.setItem('messag',JSON.stringify(messag))
       document.getElementById('text').value=''
+      
+      function getmess(){
+        const messag=JSON.parse(localStorage.getItem('messag'))||[];
+        if (messag.length>10){
+          messag.splice(0, messag.length - 10); // Keep only the last 10 messages
+        localStorage.setItem('messag', JSON.stringify(messag)); // Update local storage
+
+        }
+        
+        const div=document.getElementById('m')
+        div.innerHTML=""
+        messag.forEach(val=>{
+          const mess=val.message 
+          const p=document.createElement('p')
+          p.textContent=mess
+          div.appendChild(p)
+        });
+      }
+      getmess();
+      
       axios.post('http://localhost:8000/user',obj,{headers:{'Authorization':token}})
       .then((response)=>{
+        console.log('Successfully saved in database');
+      });
+    });
+    function getmess(){
+        const messag=JSON.parse(localStorage.getItem('messag'))||[];
+        if (messag.length>10){
+          messag.splice(0, messag.length - 10); // Keep only the last 10 messages
+        localStorage.setItem('messag', JSON.stringify(messag)); // Update local storage
+
+        }
         const div=document.getElementById('m')
         div.innerHTML=""
-        response.data.forEach(val=>{
+        messag.forEach(val=>{
           const mess=val.message 
           const p=document.createElement('p')
           p.textContent=mess
           div.appendChild(p)
-
-        })
-      
-
-      })
-
-    })
-    function load(){
-      const token = localStorage.getItem('token');
-      axios.get('http://localhost:8000/user',{headers:{'Authorization':token}})
-      .then((response)=>{
-        const div=document.getElementById('m')
-        div.innerHTML=""
-        response.data.forEach(val=>{
-          const mess=val.message 
-          const p=document.createElement('p')
-          p.textContent=mess
-          div.appendChild(p)
-
-        })
-      
-
-      })
-  
-  
-    };
-    load()
+        });
+      }
+    getmess()
   </script>
   
 </body>
