@@ -22,15 +22,21 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.post('/user',async (req,res)=>{
-  const {message}=req.body 
+  const {message,name}=req.body 
   const token=req.header('Authorization')
   const id= jwt.verify(token,process.env.SECRET_KEY)
   const date=new Date().toISOString()
   console.log(message,token,id,date)
   try{
-    await pool.execute('INSERT INTO chat (id,message,dateandtime) VALUES(?,?,?)',[id.userid,message,date])
-    const [rows]= await pool.execute('SELECT message FROM chat WHERE id=?',[id.userid])
-    res.status(201).json(rows)
+    await pool.execute('INSERT INTO chat (id,message,name,dateandtime) VALUES(?,?,?,?)',[id.userid,message,name,date])
+    const [rows]= await pool.execute('SELECT message,name FROM chat')
+    if (rows.length<10){
+      res.status(201).json(rows)
+    }
+    else{
+      res.status(201).json(rows.slice(rows.length-10,rows.length))
+    }
+    
 
 
 
@@ -45,8 +51,13 @@ app.get('/user',async (req,res)=>{
   const token=req.header('Authorization')
   const id= jwt.verify(token,process.env.SECRET_KEY)
   try{
-    const [rows]= await pool.execute('SELECT message FROM chat WHERE id=?',[id.userid])
-    res.status(201).json(rows)
+    const [rows]= await pool.execute('SELECT message,name FROM chat')
+    if (rows.length<10){
+      res.status(201).json(rows)
+    }
+    else{
+      res.status(201).json(rows.slice(rows.length-10,rows.length))
+    }
 
 
 
@@ -72,7 +83,7 @@ app.post('/login',async (req, res) => {
     }
     console.log("Login successful:", user); // Logging the user data retrieved from the database
     // res.redirect('/expenses/expense'); // Redirect to expense.html upon successful login
-    res.send({ message: 'Login successfully', token: generateToken(user.id) });
+    res.send({ message: 'Login successfully', token: generateToken(user.id),name:user.name });
 
   } catch (error) {
     console.error("Error:", error);
@@ -101,5 +112,38 @@ app.post('/signup',async (req, res) => {
     res.status(500).send("Error occurred");
   }
 });
+app.post('/creategroup', async(req,res) =>{
+  const {groupname}=req.body;
+  const token=req.header('Authorization')
+  const id= jwt.verify(token,process.env.SECRET_KEY)
+  const date=new Date().toISOString()
+  try{
+    await pool.execute('INSERT INTO grouptable (group_name,admin,created_at) VALUES(?,?,?)',[groupname,id.userid,date])
+    const [rows] = await pool.execute('SELECT group_id FROM grouptable')
+    const group=rows[rows.length-1].group_id
+    await pool.execute('INSERT INTO groupmember (group_id,user_id) VALUES(?,?)',[group,id.userid])
+    res.send("group created successfully")
+
+  }
+  catch(error){
+    console.error("Error:", error);
+    res.status(500).send("Error occurred");
+  }
+})
+app.get('/getgroup',async(req,res)=>{
+  const token=req.header('Authorization')
+  const id =jwt.verify(token,process.env.SECRET_KEY)
+  try {
+    const [rows] = await pool.execute('SELECT group_name FROM grouptable WHERE admin = ?', [id.userid]);
+    res.send(rows)
+    
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Error occurred");
+    
+  }
+
+}
+)
 
 app.listen(8000)

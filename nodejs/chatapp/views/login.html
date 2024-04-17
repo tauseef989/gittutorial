@@ -34,6 +34,7 @@
         .then(response => {
           console.log("Login successful", response.data);
           localStorage.setItem('token',response.data.token)
+          localStorage.setItem('name',response.data.name)
           window.location.href = "./chat.html"; // Change the URL as needed
         })
         .catch(error => {
@@ -44,4 +45,3 @@
   </script>
 </body>
 </html>
-

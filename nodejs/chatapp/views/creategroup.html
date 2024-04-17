@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create group</title>
+</head>
+<body>
+  <form>
+    <label for="groupname">group name</label>
+    <input id="groupname" type="text" name="groupname"> 
+    <button id="creategroup">create group</button>
+  </form>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    document.getElementById('creategroup').addEventListener('click',(e)=>{
+      e.preventDefault();
+      const groupname=document.getElementById('groupname').value 
+      const token=localStorage.getItem('token')
+      const obj={groupname:groupname}
+      axios.post('http://localhost:8000/creategroup',obj,{headers:{'Authorization':token}})
+      .then(response =>{ 
+        window.location.assign('./chat.html')
+
+      }) 
+    })
+  </script>
+  
+</body>
+</html>

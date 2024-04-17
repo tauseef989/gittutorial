@@ -7,8 +7,12 @@
 </head>
 <body>
   <h2>Chat App</h2>
+  <button id="creategroup">Create group</button><br>
+  <button id="commongroup">common-group</button>
+  <p id="n"></p>
   <p> you joined</p>
   <div id="m"></div>
+  
   <form id="chat">
     <input id="text" type="text" name="message" placeholder="Enter your message here"> 
     <button id="message">Send</button>
@@ -16,61 +20,80 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
   <script>
+    const token=localStorage.getItem('token')
+
     document.getElementById('message').addEventListener('click',(e)=>{
       e.preventDefault();
       const m = document.getElementById('text').value;
-      
-      const token=localStorage.getItem('token')
+      const name=localStorage.getItem('name')
       const obj={
         message:m,
+        name:name
       }
-      const messag=JSON.parse(localStorage.getItem('messag'))||[];
-      messag.push(obj) 
-      localStorage.setItem('messag',JSON.stringify(messag))
-      document.getElementById('text').value=''
-      
-      function getmess(){
-        const messag=JSON.parse(localStorage.getItem('messag'))||[];
-        if (messag.length>10){
-          messag.splice(0, messag.length - 10); // Keep only the last 10 messages
-        localStorage.setItem('messag', JSON.stringify(messag)); // Update local storage
-
-        }
-        
-        const div=document.getElementById('m')
-        div.innerHTML=""
-        messag.forEach(val=>{
-          const mess=val.message 
-          const p=document.createElement('p')
-          p.textContent=mess
-          div.appendChild(p)
-        });
-      }
-      getmess();
-      
+      document.getElementById('text').value='' 
       axios.post('http://localhost:8000/user',obj,{headers:{'Authorization':token}})
       .then((response)=>{
-        console.log('Successfully saved in database');
-      });
-    });
-    function getmess(){
-        const messag=JSON.parse(localStorage.getItem('messag'))||[];
-        if (messag.length>10){
-          messag.splice(0, messag.length - 10); // Keep only the last 10 messages
-        localStorage.setItem('messag', JSON.stringify(messag)); // Update local storage
-
-        }
+        console.log(response.data)
         const div=document.getElementById('m')
         div.innerHTML=""
-        messag.forEach(val=>{
+        response.data.forEach(val=>{
           const mess=val.message 
+          const name=val.name
           const p=document.createElement('p')
-          p.textContent=mess
+          p.textContent=`${mess}-${name}`
           div.appendChild(p)
         });
+        
+         
+
+        console.log('Successfully saved in database',name);
+      });
+
+      
+    });
+    document.getElementById('creategroup').addEventListener('click',(e)=>{
+      e.preventDefault()
+      window.location.replace('./creategroup.html')
+
+    })
+    document.getElementById('commongroup').addEventListener('click',getmess)
+    function getgroup(){
+      axios.get('http://localhost:8000/getgroup',{headers:{'Authorization':token}})
+      .then((response)=>{
+        const n= document.getElementById('n')
+        n.innerHTML=''
+        response.data.forEach(val=>{
+          const group=val.group_name
+          const p=document.createElement('button')
+          p.textContent=`${group}` 
+          n.appendChild(p)
+        })
+
+      })
+    }
+    function getmess(){
+      axios.get('http://localhost:8000/user',{headers:{'Authorization':token}})
+      .then((response)=>{
+        console.log(response.data)
+        const div=document.getElementById('m')
+        div.innerHTML=""
+        response.data.forEach(val=>{
+          const mess=val.message 
+          const name=val.name
+          const p=document.createElement('p')
+          p.textContent=`${mess}-${name}`
+          div.appendChild(p)
+        });
+        
+         
+
+        console.log('Successfully saved in database',name);
+      });
       }
-    getmess()
+      getmess();
+      getgroup()
+      // setInterval(getgroup,1000);
+      setInterval(getmess, 1000);
   </script>
-  
 </body>
 </html>
