@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <p id="edit"></p>
+  <div id="m"></div>
+  <form id="chat">
+    <input id="text" type="text" name="message" placeholder="Enter your message here"> 
+    <button id="message">Send</button>
+  </form>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+        const token=localStorage.getItem('token')
+        const groupname=localStorage.getItem('groupname')
+        document.addEventListener('DOMContentLoaded', function() {
+          axios.get(`http://localhost:8000/isadmin?groupname=${groupname}`,{headers:{'Authorization':token}})
+          .then(response=>{
+            const isadmin=response.data 
+            console.log(">>>",isadmin)
+            if (isadmin===true){
+              const p=document.getElementById('edit');
+              const q=document.createElement('button')
+              q.innerText='edit';
+              q.addEventListener('click',()=>{
+                window.location.href='./editgroup.html'
+              })
+              p.appendChild(q)
+              
+
+            }
+
+          })
+
+
+});
+
+document.getElementById('message').addEventListener('click',(e)=>{
+  e.preventDefault();
+  const m = document.getElementById('text').value;
+  const name=localStorage.getItem('name')
+  const obj={
+    message:m,
+    name:name,
+    groupname:groupname
+  }
+  document.getElementById('text').value='' 
+  axios.post('http://localhost:8000/groupuser',obj,{headers:{'Authorization':token}})
+  .then((response)=>{
+    console.log(response.data)
+    const div=document.getElementById('m')
+    div.innerHTML=""
+    response.data.forEach(val=>{
+      const mess=val.groupmessage 
+      const name=val.username
+      const p=document.createElement('p')
+      p.textContent=`${mess}-${name}`
+      div.appendChild(p)
+    });
+    
+     
+
+    console.log('Successfully saved in database',name);
+  });
+
+  
+});
+function getmess(groupname){
+
+      const group_name=groupname
+      axios.get(`http://localhost:8000/getgroupuser?groupname=${group_name}`,{headers:{'Authorization':token}})
+      .then((response)=>{
+        console.log(response.data)
+        const div=document.getElementById('m')
+        div.innerHTML=""
+        response.data.forEach(val=>{
+          const mess=val.groupmessage 
+          const name=val.username
+          const p=document.createElement('p')
+          p.textContent=`${mess}-${name}`
+          div.appendChild(p)
+        });
+        
+         
+
+        console.log('Successfully saved in database',groupname);
+      });
+      }
+      getmess(groupname);
+      setInterval(getmess(groupname), 1000);
+   
+
+  </script>
+</body>
+</html>

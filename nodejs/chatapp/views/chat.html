@@ -63,13 +63,19 @@
         const n= document.getElementById('n')
         n.innerHTML=''
         response.data.forEach(val=>{
-          const group=val.group_name
+          const group=val
           const p=document.createElement('button')
+          p.addEventListener('click', () => newgroup(group));
           p.textContent=`${group}` 
           n.appendChild(p)
         })
 
       })
+    }
+    function newgroup(val){
+      localStorage.setItem('groupname',val)
+      window.location.replace('./groupchat.html')
+
     }
     function getmess(){
       axios.get('http://localhost:8000/user',{headers:{'Authorization':token}})
@@ -91,7 +97,7 @@
       });
       }
       getmess();
-      getgroup()
+      getgroup();
       // setInterval(getgroup,1000);
       setInterval(getmess, 1000);
   </script>

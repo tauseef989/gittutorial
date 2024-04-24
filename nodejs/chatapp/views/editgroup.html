@@ -9,21 +9,24 @@
   <form id="groupForm">
     <label for="groupname">Group Name</label>
     <input id="groupname" type="text" name="groupname"> 
-    <button id="creategroup">Create Group</button>
+    <button id="editgroup">Edit Group</button>
     <div id="userSelection"></div> <!-- Changed to div for appending checkboxes -->
   </form>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const token = localStorage.getItem('token');
+      const groupname=localStorage.getItem('groupname')
+      const oldgroupname=localStorage.getItem('groupname')
+      document.getElementById('groupname').value=groupname
       selectUser(token);
 
-      document.getElementById('creategroup').addEventListener('click', function (e) {
+      document.getElementById('editgroup').addEventListener('click', function (e) {
         e.preventDefault();
         const groupname = document.getElementById('groupname').value;
         const selectedUserIds = getSelectedUserIds();
-        const obj = { groupname: groupname, selectedUserIds: selectedUserIds };
-        axios.post('http://localhost:8000/creategroup', obj, { headers: { 'Authorization': token } })
+        const obj = { groupname: groupname, selectedUserIds: selectedUserIds ,oldgroupname:oldgroupname};
+        axios.put('http://localhost:8000/editgroup', obj, { headers: { 'Authorization': token } })
           .then(response => {
             window.location.assign('./chat.html');
           })
