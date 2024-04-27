@@ -1,12 +1,22 @@
 require('dotenv').config();
 const express = require("express");
-const fs=require('fs')
-const bodyParser = require("body-parser");
+const app=express()
 const cors = require("cors");
+const fs=require('fs')
+const http=require('http')
+const socketIO=require('socket.io')
+const server=http.createServer(app)
+const io=socketIO(server,{cors
+:{origin:"*"}})
+const bodyParser = require("body-parser");
+
 const mysql = require("mysql2/promise");
 const bcrypt=require("bcrypt")
 const jwt=require('jsonwebtoken')
-const app=express()
+
+app.use(bodyParser.json());
+app.use(cors());
+
 const pool = mysql.createPool({
   user: 'root',
   database: 'chatapp',
@@ -17,58 +27,129 @@ const pool = mysql.createPool({
 function generateToken(id){
   return jwt.sign({userid:id},process.env.SECRET_KEY)
 }
+// const io=new Server(server)
 
-app.use(cors());
-app.use(bodyParser.json());
+// Socket.IO handling for receiving group messages
+// io.on('connection', (socket) => {
+//   // Extract token from handshake data
+//   const token = socket.handshake.auth.token;
+  
+//   // Verify token and extract user ID
+//   const id = jwt.verify(token, process.env.SECRET_KEY);
+  
+//   socket.on('sendGroupMessage', async (data) => {
+//     const { message, name, groupname } = data;
+//     const date = new Date().toISOString();
 
-app.post('/user',async (req,res)=>{
-  const {message,name}=req.body 
-  const token=req.header('Authorization')
-  const id= jwt.verify(token,process.env.SECRET_KEY)
-  const date=new Date().toISOString()
-  console.log(message,token,id,date)
-  try{
-    await pool.execute('INSERT INTO chat (id,message,name,dateandtime) VALUES(?,?,?,?)',[id.userid,message,name,date])
-    const [rows]= await pool.execute('SELECT message,name FROM chat')
-    if (rows.length<10){
-      res.status(201).json(rows)
+//     try {
+//       // Save the message to the database
+//       await pool.execute(
+//         'INSERT INTO groupmessage (groupname, user_id, username, groupmessage, time) VALUES (?, ?, ?, ?, ?)',
+//         [groupname, id.userid, name, message, date]
+//       );
+
+//       // Fetch the updated messages from the database
+//       const [rows] = await pool.execute(
+//         'SELECT groupmessage, username FROM groupmessage WHERE groupname = ?',
+//         [groupname]
+//       );
+
+//       // Emit the updated messages to all clients in the same group
+//       io.emit('groupMessageSent', rows);
+//     } catch (error) {
+//       console.error('Error saving message:', error);
+//       // Emit an error event to the client if needed
+//     }
+//   });
+// });
+
+io.on('connection', (socket) => {
+  console.log(">>>>>socket")
+  socket.on('sendGroupMessage', async (data) => {
+    console.log(">>>",data)
+    const { message, name, groupname } = data;
+    const token = socket.handshake.auth.token; // Extract token from handshake
+    const id = jwt.verify(token, process.env.SECRET_KEY);
+    const date = new Date().toISOString();
+
+    console.log(groupname, id.userid, name, message, date);
+
+    try {
+      await pool.execute(
+        'INSERT INTO groupmessage (groupname,user_id,username,groupmessage,time) VALUES(?,?,?,?,?)',
+        [groupname, id.userid, name, message, date]
+      );
+
+      const [rows] = await pool.execute(
+        'SELECT groupmessage,username FROM groupmessage WHERE groupname=?',
+        [groupname]
+      );
+
+      if (rows.length < 10) {
+        // Send the updated messages to the group
+        io.emit('groupMessageSent', rows);
+      } else {
+        // Send the latest 10 messages to the group
+        io.emit('groupMessageSent', rows.slice(rows.length - 10, rows.length));
+      }
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      // Send an error response to the client
+      // You may want to handle this differently based on your application's requirements
+      socket.emit('groupMessageError', { error: 'Failed to save message' });
     }
-    else{
-      res.status(201).json(rows.slice(rows.length-10,rows.length))
-    }
+  });
+});
+
+
+// app.post('/user',async (req,res)=>{
+//   const {message,name}=req.body 
+//   const token=req.header('Authorization')
+//   const id= jwt.verify(token,process.env.SECRET_KEY)
+//   const date=new Date().toISOString()
+//   console.log(message,token,id,date)
+//   try{
+//     await pool.execute('INSERT INTO chat (id,message,name,dateandtime) VALUES(?,?,?,?)',[id.userid,message,name,date])
+//     const [rows]= await pool.execute('SELECT message,name FROM chat')
+//     if (rows.length<10){
+//       res.status(201).json(rows)
+//     }
+//     else{
+//       res.status(201).json(rows.slice(rows.length-10,rows.length))
+//     }
     
 
 
 
-  }
-  catch(error){
-    console.error('Error fetching expenses:', error);
-    res.status(500).json({ error: 'Failed to fetch expenses' });
+//   }
+//   catch(error){
+//     console.error('Error fetching expenses:', error);
+//     res.status(500).json({ error: 'Failed to fetch expenses' });
 
-  }
-})
-app.get('/user',async (req,res)=>{
-  const token=req.header('Authorization')
-  const id= jwt.verify(token,process.env.SECRET_KEY)
-  try{
-    const [rows]= await pool.execute('SELECT message,name FROM chat')
-    if (rows.length<10){
-      res.status(201).json(rows)
-    }
-    else{
-      res.status(201).json(rows.slice(rows.length-10,rows.length))
-    }
+//   }
+// })
+// app.get('/user',async (req,res)=>{
+//   const token=req.header('Authorization')
+//   const id= jwt.verify(token,process.env.SECRET_KEY)
+//   try{
+//     const [rows]= await pool.execute('SELECT message,name FROM chat')
+//     if (rows.length<10){
+//       res.status(201).json(rows)
+//     }
+//     else{
+//       res.status(201).json(rows.slice(rows.length-10,rows.length))
+//     }
 
 
 
-  }
-  catch(error){
-    console.error('Error fetching expenses:', error);
-    res.status(500).json({ error: 'Failed to fetch expenses' });
+//   }
+//   catch(error){
+//     console.error('Error fetching expenses:', error);
+//     res.status(500).json({ error: 'Failed to fetch expenses' });
 
-  }
+//   }
 
-})
+// })
 app.post('/login',async (req, res) => {
   const { Email, Password } = req.body;
   try {
@@ -118,7 +199,7 @@ app.get('/getgroup',async(req,res)=>{
   const id =jwt.verify(token,process.env.SECRET_KEY)
   try {
     const [rows] = await pool.execute('SELECT group_id FROM groupmember WHERE user_id = ?', [id.userid]);
-    const arr=[]
+    const arr=["common-group"]
     for(const val of rows){
       const group_id=val.group_id
       const [row]=await pool.execute('SELECT group_name FROM grouptable WHERE group_id= ?',[group_id]);
@@ -149,48 +230,51 @@ app.get('/getalluserid',async(req,res)=>{
 
 
 })
-app.post('/groupuser',async (req,res)=>{
-  const {message,name,groupname}=req.body 
-  const token=req.header('Authorization')
-  const id= jwt.verify(token,process.env.SECRET_KEY)
-  const date=new Date().toISOString()
-  console.log(groupname,id.userid,name,message,date)
-  try{
-    await pool.execute('INSERT INTO groupmessage (groupname,user_id,username,groupmessage,time) VALUES(?,?,?,?,?)',[groupname,id.userid,name,message,date])
-    const [rows]= await pool.execute('SELECT groupmessage,username FROM groupmessage WHERE groupname=?',[groupname])
-    if (rows.length<10){
-      res.status(201).json(rows)
-    }
-    else{
-      res.status(201).json(rows.slice(rows.length-10,rows.length))
-    }
+// app.post('/groupuser',async (req,res)=>{
+//   const {message,name,groupname}=req.body 
+//   const token=req.header('Authorization')
+//   const id= jwt.verify(token,process.env.SECRET_KEY)
+//   const date=new Date().toISOString()
+//   console.log(groupname,id.userid,name,message,date)
+//   try{
+//     await pool.execute('INSERT INTO groupmessage (groupname,user_id,username,groupmessage,time) VALUES(?,?,?,?,?)',[groupname,id.userid,name,message,date])
+//     const [rows]= await pool.execute('SELECT groupmessage,username FROM groupmessage WHERE groupname=?',[groupname])
+//     if (rows.length<10){
+//       res.status(201).json(rows)
+//     }
+//     else{
+//       res.status(201).json(rows.slice(rows.length-10,rows.length))
+//     }
     
 
 
 
-  }
-  catch(error){
-    console.error('Error fetching expenses:', error);
-    res.status(500).json({ error: 'Failed to fetch expenses' });
+//   }
+//   catch(error){
+//     console.error('Error fetching expenses:', error);
+//     res.status(500).json({ error: 'Failed to fetch expenses' });
 
-  }
-})
+//   }
+// })
+
 app.get('/getgroupuser',async (req,res)=>{
   const token=req.header('Authorization')
   const groupname=req.query.groupname;
   const id= jwt.verify(token,process.env.SECRET_KEY)
   try{
+
     const [rows]= await pool.execute('SELECT groupmessage,username FROM groupmessage WHERE groupname=?',[groupname])
     if (rows.length<10){
       res.status(201).json(rows)
     }
     else{
       res.status(201).json(rows.slice(rows.length-10,rows.length))
-    }
+    }}
 
 
 
-  }
+
+  
   catch(error){
     console.error('Error fetching expenses:', error);
     res.status(500).json({ error: 'Failed to fetch expenses' });
@@ -281,4 +365,4 @@ app.put('/editgroup', async (req, res) => {
 });
 
 
-app.listen(8000)
+server.listen(8000,()=>{console.log('running on 8000')})

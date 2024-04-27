@@ -35,7 +35,7 @@
           console.log("Login successful", response.data);
           localStorage.setItem('token',response.data.token)
           localStorage.setItem('name',response.data.name)
-          window.location.href = "./chat.html"; // Change the URL as needed
+          window.location.href = "./groupchat.html"; // Change the URL as needed
         })
         .catch(error => {
           console.error("Login failed", error.response.data.error);

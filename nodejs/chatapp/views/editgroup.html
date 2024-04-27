@@ -28,7 +28,7 @@
         const obj = { groupname: groupname, selectedUserIds: selectedUserIds ,oldgroupname:oldgroupname};
         axios.put('http://localhost:8000/editgroup', obj, { headers: { 'Authorization': token } })
           .then(response => {
-            window.location.assign('./chat.html');
+            window.location.assign('./groupchat.html');
           })
           .catch(error => {
             console.error('Error creating group:', error);
