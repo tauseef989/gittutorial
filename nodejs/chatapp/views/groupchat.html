@@ -1,169 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
- 
-</head>
-<body>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
-  <button id="creategroup">Create group</button><br>
-  <p id="n"></p>
-  <p id="edit"></p>
-  <div id="m"></div>
-  <form id="chat">
-    <input id="text" type="text" name="message" placeholder="Enter your message here"> 
-    <button id="message">Send</button>
-  </form>
- 
-
-  <script>
-        const token=localStorage.getItem('token')
-        const groupname=localStorage.getItem('groupname')
-        const socket = io({auth: {token: localStorage.getItem('token') }});
-
-        document.addEventListener('DOMContentLoaded', function() {
-          axios.get(`http://localhost:8000/isadmin?groupname=${groupname}`,{headers:{'Authorization':token}})
-          .then(response=>{
-            const isadmin=response.data 
-            console.log(">>>",isadmin)
-            if (isadmin===true){
-              const p=document.getElementById('edit');
-              const q=document.createElement('button')
-              q.innerText='edit';
-              q.addEventListener('click',()=>{
-                window.location.href='./editgroup.html'
-              })
-              p.appendChild(q)
-              
-
-            }
-
-          })
-
-
-});
-
-// document.getElementById('message').addEventListener('click',(e)=>{
-//   e.preventDefault();
-//   const m = document.getElementById('text').value;
-//   const name=localStorage.getItem('name')
-//   const obj={
-//     message:m,
-//     name:name,
-//     groupname:groupname
-//   }
-//   document.getElementById('text').value='' 
-//   axios.post('http://localhost:8000/groupuser',obj,{headers:{'Authorization':token}})
-//   .then((response)=>{
-//     console.log(response.data)
-//     const div=document.getElementById('m')
-//     div.innerHTML=""
-//     response.data.forEach(val=>{
-//       const mess=val.groupmessage 
-//       const name=val.username
-//       const p=document.createElement('p')
-//       p.textContent=`${mess}-${name}`
-//       div.appendChild(p)
-//     });
-    
-     
-
-//     console.log('Successfully saved in database',name);
-//   });
-
-  
-// });
-document.getElementById('message').addEventListener('click', (e) => {
-  e.preventDefault();
-  const m = document.getElementById('text').value;
-  const name = localStorage.getItem('name');
-  const groupname = localStorage.getItem('groupname');
-
-  // Emit a custom event to the server with the message and group name
-  socket.emit('sendGroupMessage', { message: m, name: name, groupname: groupname });
-
-  // Clear the input field after sending the message
-  document.getElementById('text').value = '';
-});
-
-// Listen for the response from the server after sending the message
-socket.on('groupMessageSent', (data) => {
-  console.log(data);
-  const div = document.getElementById('m');
-  div.innerHTML = "";
-  data.forEach(val => {
-    const mess = val.groupmessage;
-    const name = val.username;
-    const p = document.createElement('p');
-    p.textContent = `${mess}-${name}`;
-    div.appendChild(p);
-  });
-  console.log('Successfully saved in database', data[0].username);
-});
-
-document.getElementById('creategroup').addEventListener('click',(e)=>{
-      e.preventDefault()
-      window.location.replace('./creategroup.html')
-
-    })
-function getgroup(){
-      axios.get('http://localhost:8000/getgroup',{headers:{'Authorization':token}})
-      .then((response)=>{
-        const n= document.getElementById('n')
-        n.innerHTML=''
-        response.data.forEach(val=>{
-          const group=val
-          const p=document.createElement('button')
-          p.addEventListener('click', () => newgroup(group));
-          p.textContent=`${group}` 
-          n.appendChild(p)
-        })
-
-      })
-    }
-function newgroup(val){
-      localStorage.setItem('groupname',val)
-      window.location.replace('./groupchat.html')
-
-    }
-function getmess(groupname){
-
-      const group_name=groupname
-      console.log(">>>>>",group_name,groupname)
-      axios.get(`http://localhost:8000/getgroupuser?groupname=${group_name}`,{headers:{'Authorization':token}})
-      .then((response)=>{
-        console.log(response.data)
-        const div=document.getElementById('m')
-        div.innerHTML=""
-        let mess, name;
-        response.data.forEach(val=>{
-          mess=val.groupmessage 
-          name=val.username
-        
-          const p=document.createElement('p')
-          p.textContent=`${mess}-${name}`
-          div.appendChild(p)
-        });
-        
-         
-
-        console.log('Successfully saved in database',groupname);
-      });
-      }
-      
-      
-      getgroup();
-      // getmess(groupname);
-      // setInterval(()=> getmess(groupname), 1000);
-   
-
-  </script>
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -181,7 +15,8 @@ function getmess(groupname){
   <div id="m"></div>
   <form id="chat">
     <input id="text" type="text" name="message" placeholder="Enter your message here"> 
-    <button id="message">Send</button>
+    <input id="fileInput" type="file" accept="*">
+    <button id="message" type="submit">Send</button>
   </form>
 
   <script>
@@ -206,17 +41,58 @@ function getmess(groupname){
         });
     });
 
-    document.getElementById('message').addEventListener('click', (e) => {
+    document.getElementById('chat').addEventListener('submit', async (e) => {
       e.preventDefault();
       const m = document.getElementById('text').value;
       const name = localStorage.getItem('name') || 'Anonymous'; // Use 'Anonymous' as a default name if 'name' is not available
       const groupname = localStorage.getItem('groupname');
-      console.log(m,name,groupname)
-      // Emit a custom event to the server with the message and group name
-      socket.emit('sendGroupMessage', { message: m, name: name, groupname: groupname });
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        console.log(">>>",file)
+        // Log file details to the console
+        console.log('File name:', file.name);
+        console.log('File size:', file.size);
+        console.log('File type:', file.type);
+  
+        // You can perform further actions here, such as sending the file to the server
+        const formData = new FormData();
+        formData.append('file', file);
+  
+        try {
+          const response = await axios.post('http://localhost:8000/sendMessageWithFile', formData, {
+            headers: {
+              'Authorization': token,
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          const link = response.data.s3Location;
+          const div = document.getElementById('m');
+          const p = document.createElement("p");
+          const a = document.createElement("a"); // Create an anchor element
+          a.textContent = "Download File"; // Set the anchor text
+          a.href = link; // Set the href attribute to the s3Location
+          a.target = "_blank"; // Open the link in a new tab/window
+          p.appendChild(a); // Append the anchor element to the paragraph
+          div.appendChild(p);
+          console.log(p)
+          console.log('File uploaded successfullyy:', link);
+
+          // Emit a custom event to the server with the message, name, and groupname
+          socket.emit('sendGroupMessage', { message: `${m} - ${link}`, name: name, groupname: groupname });
+
+        } catch (error) {
+          console.error('Error uploading file:', error);
+        }
+      } else {
+        // If no file is selected, just emit the text message to the server
+        socket.emit('sendGroupMessage', { message: m, name: name, groupname: groupname });
+      }
 
       // Clear the input field after sending the message
       document.getElementById('text').value = '';
+      // Clear the file input
+      fileInput.value = '';
     });
 
     // Listen for the response from the server after sending the message
@@ -231,7 +107,7 @@ function getmess(groupname){
         p.textContent = `${mess}-${name}`;
         div.appendChild(p);
       });
-      console.log('Successfully saved in database', data[0].username);
+      console.log('Successfully saved in database');
     });
 
     document.getElementById('creategroup').addEventListener('click', (e) => {

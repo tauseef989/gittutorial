@@ -4,6 +4,9 @@ const app=express()
 const cors = require("cors");
 const fs=require('fs')
 const http=require('http')
+const multer = require('multer');
+const upload = multer(); 
+const AWS = require('aws-sdk');
 const socketIO=require('socket.io')
 const server=http.createServer(app)
 const io=socketIO(server,{cors
@@ -27,41 +30,38 @@ const pool = mysql.createPool({
 function generateToken(id){
   return jwt.sign({userid:id},process.env.SECRET_KEY)
 }
-// const io=new Server(server)
+function uploadToS3(data, filename) {
+  const BUCKET_NAME = 'chatapp23';
+  const IAM_USER_KEY = process.env.IAM_USER_KEY;
+  const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
 
-// Socket.IO handling for receiving group messages
-// io.on('connection', (socket) => {
-//   // Extract token from handshake data
-//   const token = socket.handshake.auth.token;
-  
-//   // Verify token and extract user ID
-//   const id = jwt.verify(token, process.env.SECRET_KEY);
-  
-//   socket.on('sendGroupMessage', async (data) => {
-//     const { message, name, groupname } = data;
-//     const date = new Date().toISOString();
+  // Configure AWS SDK
+  AWS.config.update({
+    accessKeyId: IAM_USER_KEY,
+    secretAccessKey: IAM_USER_SECRET
+  });
 
-//     try {
-//       // Save the message to the database
-//       await pool.execute(
-//         'INSERT INTO groupmessage (groupname, user_id, username, groupmessage, time) VALUES (?, ?, ?, ?, ?)',
-//         [groupname, id.userid, name, message, date]
-//       );
+  const s3bucket = new AWS.S3();
 
-//       // Fetch the updated messages from the database
-//       const [rows] = await pool.execute(
-//         'SELECT groupmessage, username FROM groupmessage WHERE groupname = ?',
-//         [groupname]
-//       );
+  return new Promise((resolve, reject) => {
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: filename,
+      Body: data,
+      ACL:'public-read'
+    };
 
-//       // Emit the updated messages to all clients in the same group
-//       io.emit('groupMessageSent', rows);
-//     } catch (error) {
-//       console.error('Error saving message:', error);
-//       // Emit an error event to the client if needed
-//     }
-//   });
-// });
+    s3bucket.upload(params, (err, s3response) => {
+      if (err) {
+        console.log('Error uploading to S3:', err);
+        reject(err);
+      } else {
+        console.log('Successfully uploaded to S3:', s3response.Location);
+        resolve(s3response.Location);
+      }
+    });
+  });
+}
 
 io.on('connection', (socket) => {
   console.log(">>>>>socket")
@@ -101,55 +101,6 @@ io.on('connection', (socket) => {
   });
 });
 
-
-// app.post('/user',async (req,res)=>{
-//   const {message,name}=req.body 
-//   const token=req.header('Authorization')
-//   const id= jwt.verify(token,process.env.SECRET_KEY)
-//   const date=new Date().toISOString()
-//   console.log(message,token,id,date)
-//   try{
-//     await pool.execute('INSERT INTO chat (id,message,name,dateandtime) VALUES(?,?,?,?)',[id.userid,message,name,date])
-//     const [rows]= await pool.execute('SELECT message,name FROM chat')
-//     if (rows.length<10){
-//       res.status(201).json(rows)
-//     }
-//     else{
-//       res.status(201).json(rows.slice(rows.length-10,rows.length))
-//     }
-    
-
-
-
-//   }
-//   catch(error){
-//     console.error('Error fetching expenses:', error);
-//     res.status(500).json({ error: 'Failed to fetch expenses' });
-
-//   }
-// })
-// app.get('/user',async (req,res)=>{
-//   const token=req.header('Authorization')
-//   const id= jwt.verify(token,process.env.SECRET_KEY)
-//   try{
-//     const [rows]= await pool.execute('SELECT message,name FROM chat')
-//     if (rows.length<10){
-//       res.status(201).json(rows)
-//     }
-//     else{
-//       res.status(201).json(rows.slice(rows.length-10,rows.length))
-//     }
-
-
-
-//   }
-//   catch(error){
-//     console.error('Error fetching expenses:', error);
-//     res.status(500).json({ error: 'Failed to fetch expenses' });
-
-//   }
-
-// })
 app.post('/login',async (req, res) => {
   const { Email, Password } = req.body;
   try {
@@ -230,32 +181,6 @@ app.get('/getalluserid',async(req,res)=>{
 
 
 })
-// app.post('/groupuser',async (req,res)=>{
-//   const {message,name,groupname}=req.body 
-//   const token=req.header('Authorization')
-//   const id= jwt.verify(token,process.env.SECRET_KEY)
-//   const date=new Date().toISOString()
-//   console.log(groupname,id.userid,name,message,date)
-//   try{
-//     await pool.execute('INSERT INTO groupmessage (groupname,user_id,username,groupmessage,time) VALUES(?,?,?,?,?)',[groupname,id.userid,name,message,date])
-//     const [rows]= await pool.execute('SELECT groupmessage,username FROM groupmessage WHERE groupname=?',[groupname])
-//     if (rows.length<10){
-//       res.status(201).json(rows)
-//     }
-//     else{
-//       res.status(201).json(rows.slice(rows.length-10,rows.length))
-//     }
-    
-
-
-
-//   }
-//   catch(error){
-//     console.error('Error fetching expenses:', error);
-//     res.status(500).json({ error: 'Failed to fetch expenses' });
-
-//   }
-// })
 
 app.get('/getgroupuser',async (req,res)=>{
   const token=req.header('Authorization')
@@ -363,6 +288,26 @@ app.put('/editgroup', async (req, res) => {
     res.status(500).send("An error occurred while creating the group");
   }
 });
+// Handle file uploads
+app.post('/sendMessageWithFile', upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  try {
+    // Upload file to AWS S3
+    const s3Location = await uploadToS3(req.file.buffer, req.file.originalname);
+    console.log('File uploaded to S3:', s3Location);
+
+    // Handle other actions (e.g., save file metadata to database)
+
+    res.status(200).json({ message: 'File uploaded successfully', s3Location });
+  } catch (error) {
+    console.error('Error uploading file to S3:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 
 server.listen(8000,()=>{console.log('running on 8000')})
