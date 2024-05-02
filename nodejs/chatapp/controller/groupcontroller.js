@@ -21,10 +21,10 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const pool = mysql.createPool({
-  user: 'root',
-  database: 'chatapp',
-  password: 'aA@11111',
-  host: 'localhost'
+  user: process.env.DB_USER,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST
 });
 
 function generateToken(id){

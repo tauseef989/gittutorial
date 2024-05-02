@@ -21,10 +21,10 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const pool = mysql.createPool({
-  user: 'root',
-  database: 'chatapp',
-  password: 'aA@11111',
-  host: 'localhost'
+  user: process.env.DB_USER,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST
 });
 
 function generateToken(id){
@@ -324,4 +324,4 @@ app.post('/sendMessageWithFile', upload.single('file'), async (req, res) => {
 
 
 
-server.listen(8000,()=>{console.log('running on 8000')})
+server.listen(process.env.PORT,()=>{console.log('running on 8000')})
