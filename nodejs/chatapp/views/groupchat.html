@@ -22,10 +22,10 @@
   <script>
     const token = localStorage.getItem('token');
     const groupname = localStorage.getItem('groupname');
-    const socket = io('http://localhost:8000', {auth: {token: token }});
+    const socket = io('http://18.212.194.131:8000', {auth: {token: token }});
 
     document.addEventListener('DOMContentLoaded', function () {
-      axios.get(`http://localhost:8000/isadmin?groupname=${groupname}`, { headers: { 'Authorization': token } })
+      axios.get(`http://18.212.194.131:8000/isadmin?groupname=${groupname}`, { headers: { 'Authorization': token } })
         .then(response => {
           const isadmin = response.data;
           console.log(">>>", isadmin);
@@ -60,7 +60,7 @@
         formData.append('file', file);
   
         try {
-          const response = await axios.post('http://localhost:8000/sendMessageWithFile', formData, {
+          const response = await axios.post('http://18.212.194.131:8000/sendMessageWithFile', formData, {
             headers: {
               'Authorization': token,
               'Content-Type': 'multipart/form-data'
@@ -116,7 +116,7 @@
     });
 
     function getgroup() {
-      axios.get('http://localhost:8000/getgroup', { headers: { 'Authorization': token } })
+      axios.get('http://18.212.194.131:8000/getgroup', { headers: { 'Authorization': token } })
         .then((response) => {
           const n = document.getElementById('n');
           n.innerHTML = '';
@@ -138,7 +138,7 @@
     function getmess(groupname) {
       const group_name = groupname;
       console.log(">>>>>", group_name, groupname);
-      axios.get(`http://localhost:8000/getgroupuser?groupname=${group_name}`, { headers: { 'Authorization': token } })
+      axios.get(`http://18.212.194.131:8000/getgroupuser?groupname=${group_name}`, { headers: { 'Authorization': token } })
         .then((response) => {
           console.log(response.data);
           const div = document.getElementById('m');

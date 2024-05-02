@@ -26,7 +26,7 @@
         const groupname = document.getElementById('groupname').value;
         const selectedUserIds = getSelectedUserIds();
         const obj = { groupname: groupname, selectedUserIds: selectedUserIds ,oldgroupname:oldgroupname};
-        axios.put('http://localhost:8000/editgroup', obj, { headers: { 'Authorization': token } })
+        axios.put('http://18.212.194.131:8000/editgroup', obj, { headers: { 'Authorization': token } })
           .then(response => {
             window.location.assign('./groupchat.html');
           })
@@ -37,7 +37,7 @@
     });
 
     function selectUser(token) {
-      axios.get('http://localhost:8000/getalluserid', { headers: { 'Authorization': token } })
+      axios.get('http://18.212.194.131:8000/getalluserid', { headers: { 'Authorization': token } })
         .then(response => {
           const userIds = response.data;
           const userSelection = document.getElementById('userSelection');
