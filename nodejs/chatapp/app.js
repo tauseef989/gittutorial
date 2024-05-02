@@ -35,7 +35,7 @@ const loginrouter=require('./router/login')
 const grouprouter=require('./router/group')
 const filemessage=require('./router/filemessage')
 
-=======
+
 function uploadToS3(data, filename) {
   const BUCKET_NAME = 'chatapp23';
   const IAM_USER_KEY = process.env.IAM_USER_KEY;
@@ -68,7 +68,7 @@ function uploadToS3(data, filename) {
     });
   });
 }
->>>>>>> 0131f798d4dae90476558b2e40c3ecf0608ecc98
+
 
 io.on('connection', (socket) => {
   console.log(">>>>>socket")
@@ -107,12 +107,12 @@ io.on('connection', (socket) => {
     }
   });
 });
-<<<<<<< HEAD
+
 app.use(loginrouter);
 app.use(signuprouter);
 app.use(grouprouter);
 app.use(filemessage);
-=======
+
 
 app.post('/login',async (req, res) => {
   const { Email, Password } = req.body;
