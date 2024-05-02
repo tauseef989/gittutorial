@@ -30,7 +30,6 @@ const pool = mysql.createPool({
 function generateToken(id){
   return jwt.sign({userid:id},process.env.SECRET_KEY)
 }
-<<<<<<< HEAD
 const signuprouter=require('./router/signup')
 const loginrouter=require('./router/login')
 const grouprouter=require('./router/group')
@@ -324,5 +323,5 @@ app.post('/sendMessageWithFile', upload.single('file'), async (req, res) => {
 
 
 
->>>>>>> 0131f798d4dae90476558b2e40c3ecf0608ecc98
+
 server.listen(8000,()=>{console.log('running on 8000')})
