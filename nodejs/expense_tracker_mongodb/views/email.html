@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <form id="password">
+    <label for="Email">Enter your Email:</label>
+    <input id="Email" type="email" name="email">
+    <button type="submit">submit</button>
+  </form>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+    document.getElementById("password").addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = document.getElementById("Email").value;
+      
+      try {
+        const response = await axios.get(`http://localhost:8000/password/forgotpassword?email=${email}`);
+        console.log(response.data); 
+      } catch (error) {
+        console.error("Error:", error);
+     
+      }
+    });     
+  </script>     
+  
+</body>
+</html>

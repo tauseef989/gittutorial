@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker</title>
+</head>
+<body>
+  <div class="container">
+    <h2>Expense Tracker</h2>
+    <form id="expenseForm">
+      <div class="form-group">
+        <label for="amount">Amount:</label>
+        <input type="text" id="amount" name="amount">
+      </div>
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description">
+      </div>
+      <div class="form-group">
+        <label for="category">Category:</label>
+        <select id="category" name="category">
+          <option value="groceries">Groceries</option>
+          <option value="utilities">Utilities</option>
+          <option value="entertainment">Entertainment</option>
+        </select>
+      </div>
+      <button type="submit">Add Expense</button>
+    </form>
+    <div id="premium">
+      <button id="razorpay1">Buy Premium</button>
+    </div>
+    <button id="report" style="display: none;">Report</button>
+    <button id="download"> Download</button>
+
+    
+
+    <h2>Expenses</h2>
+    <form>
+      <label for="noofexpenseperpage">noofexpenseperpage:</label>
+      <input type="number" id="noofexpenseperpage" name="noofexpenseperpage" >
+      <button type="submit" id="noe">submit</button>
+    </form>
+    <ul id="expensesList"></ul>
+    <ul id="pagination"></ul>
+  </div>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+  <script>
+
+document.getElementById('download').onclick = async function (e) {
+  e.preventDefault();
+  try {
+    const response = await axios.get('http://localhost:8000/download', {
+      headers: { 'Authorization': token }
+    });
+    if (response.status === 200) {
+      const fileUrl = response.data.fileURL;
+      const a = document.createElement("a");
+      a.href = fileUrl;
+      a.download = 'myexpense.csv';
+      a.click();
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    showError(error); // Corrected from 'err' to 'error'
+  }
+};
+
+
+async function premiumbutton(noe) {
+  const token = localStorage.getItem('token');
+  try {
+    const response = await axios.get('http://localhost:8000/premium/ispremiummember', { headers: { 'Authorization': token } });
+    const ispremiummember = response.data.key;
+    const premiumDiv = document.getElementById('premium');
+    
+    if (ispremiummember) {
+      document.getElementById('report').style.display = 'block';
+
+      // Remove all child nodes of the premium div
+      while (premiumDiv.firstChild) {
+        premiumDiv.removeChild(premiumDiv.firstChild);
+      }
+      
+      // Append a new message indicating the user is now a premium member
+      const message = document.createElement('p');
+      message.textContent = 'You are now a premium user';
+      premiumDiv.appendChild(message);
+      const button = document.createElement('button');
+      button.textContent = 'leaderboard';
+      button.id='leaderboardList'
+      premiumDiv.appendChild(button);
+
+
+  document.getElementById('leaderboardList').addEventListener('click', async () => {
+  const leaderboardList = document.getElementById('leaderboardList');
+
+  try {
+    const response = await axios.get('http://localhost:8000/premium/leaderboard');
+    const data = response.data;
+
+    leaderboardList.innerHTML = ''; // Clear previous list items
+
+    data.forEach(user => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `${user.name}: ${user.total_expenses} total amount spent`;
+      leaderboardList.appendChild(listItem);
+    });
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+});
+
+      
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    // Handle error if request fails
+  }
+}
+
+premiumbutton();
+
+
+
+
+    document.getElementById('razorpay1').onclick = async function(e) {
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to buy premium.');
+        return;
+      }
+
+       try {
+        
+        const response = await axios.get('http://localhost:8000/purchase/premiummembership', { headers: { 'Authorization': token } });
+        console.log(response)
+      
+        const options = {
+          'key': response.data.key_id, 
+          'order_id': response.data.order.id,
+          'handler': async function(response) {
+            try {
+              await axios.post('http://localhost:8000/purchase/updatetransactionstatus', {
+                order_id: options.order_id, 
+                payment_id: response.razorpay_payment_id 
+              }, { headers: { 'Authorization': token } });
+              alert('You are now a premium user');
+            } catch (error) {
+              console.error('Error updating transaction status:', error);
+              alert('An error occurred while updating transaction status');
+            }
+          }
+        };
+        const rzp1 = new window.Razorpay(options);
+        console.log("rzp1-1")
+        rzp1.open();
+        console.log("rzp1-open")
+        e.preventDefault();
+        rzp1.on('payment.failed',function(response){
+          console.log(response)
+          alert("something went wrong")
+        })
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while fetching premium membership details');
+      }
+    };
+
+    const expenseForm = document.getElementById('expenseForm');
+    const expensesList = document.getElementById('expensesList');
+    const token = localStorage.getItem('token');
+    const pagination = document.getElementById('pagination');
+    
+    let noofexpenseperpage=3;
+    let start=1;
+    console.log(start,noofexpenseperpage)
+    document.getElementById('noe').onclick=async function(e){
+      e.preventDefault();
+      const noofexpenseperpage=document.getElementById('noofexpenseperpage').value
+      fetchExpenses(1,noofexpenseperpage)
+      console.log("id-noe",noofexpenseperpage)
+    }
+   
+
+    expenseForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const jsonObject = {};
+
+      formData.forEach((value, key) => {
+        jsonObject[key] = value;
+      });
+
+      axios.post('http://localhost:8000/expenses', jsonObject, { headers: { 'Authorization': token } })
+        .then(response => {
+          console.log('Expense added successfully:', response.data);
+          console.log('axios.post',start,noofexpenseperpage)
+          fetchExpenses(start,noofexpenseperpage);
+        })
+        .catch(error => {
+          console.error('Error adding expense:', error.response.data.error);
+        });
+    });
+
+    function fetchExpenses(start,noofexpenseperpage) {
+      let a=noofexpenseperpage
+      const b=start
+      console.log("fetchexpense",b,a)
+      if (!token) {
+        alert('Please login to fetch expenses.');
+        return;
+      }
+
+      axios.get(`http://localhost:8000/expenses?pn=${b}&noe=${a}`, { headers: { 'Authorization': token } })
+        .then(response => {
+          const {expenses,limit}=response.data
+          console.log(expenses,limit)
+          displayExpenses(expenses,limit,a,b);
+        })
+        .catch(error => {
+          console.error('Error fetching expenses:', error.response.data.error);
+        });
+    }
+
+
+
+
+
+    function displayExpenses(expenses,limit,a,b) {
+      const lim=limit 
+      const start=b
+      const noofexpenseperpage=a 
+      expensesList.innerHTML = '';
+      expenses.forEach(expense => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `Amount: ${expense.amount}, Description: ${expense.description}, Category: ${expense.category}`;
+        
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', function() {
+          deleteExpense(expense.id);
+        });
+
+        listItem.appendChild(deleteButton);
+        expensesList.appendChild(listItem);
+        paginationb(start,noofexpenseperpage,lim)
+      });
+    }
+    function paginationb(start, noofexpenseperpage, limit) {
+      console.log('paginationb',start,noofexpenseperpage,limit)
+    
+    pagination.innerHTML = '';
+
+    if (start >= 2 && start <= limit) {
+        const prevButton = document.createElement('button');
+        prevButton.innerText = "Prev";
+        prevButton.onclick = () => fetchExpenses(start - 1, noofexpenseperpage);
+        pagination.appendChild(prevButton);
+    }
+
+    if (start >= 1 && start < limit) {
+        const nextButton = document.createElement('button');
+        nextButton.innerText = "Next";
+        nextButton.onclick = () => fetchExpenses(start + 1, noofexpenseperpage);
+        pagination.appendChild(nextButton);
+    }
+}
+
+
+    function deleteExpense(expenseId) {
+      if (!token) {
+        alert('Please login to delete expenses.');
+        return;
+      }
+
+      axios.delete(`http://localhost:8000/expenses/${expenseId}`, { headers: { 'Authorization': token } })
+        .then(response => {
+          console.log('Expense deleted successfully:', response.data);
+          fetchExpenses();
+        })
+        .catch(error => {
+          console.error('Error deleting expense:', error.response.data.error);
+        });
+    }
+
+    fetchExpenses(1,2);
+  </script>
+</body>
+</html>
